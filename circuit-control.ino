@@ -9,6 +9,8 @@
 void setup() {
   // put your setup code here, to run once:
 
+  //initialize pin modes with pinMode command
+
 }
 
 void loop() {
