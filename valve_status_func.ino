@@ -4,6 +4,7 @@
 
 //Direct queries/clarifications to Mandira (mandira.marambe@gmail.com)
 //The function is written at the end; pins will have to be initialized in main code
+//Compiled on Arduino 1.8.8
 
 //----------------------------------------------------TEST CODE---------------------------------------------------------------
 
