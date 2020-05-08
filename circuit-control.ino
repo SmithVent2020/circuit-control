@@ -7,14 +7,17 @@
  */
 
  // initialized any global variables
+//Valve input and putput pins
  const int RELAY_ENABLE = 22;
- const int VALVE_PIN = 21; //Reading pin from same valve
+ const int VALVE_READ = 21; //Reading pin from same valve
+
  bool state; // initialized as false by default
  bool read_state; //initialized as false
 
 void setup() {
   //initialize pin modes with pinMode command
   pinMode(RELAY_ENABLE, OUTPUT);
+ pinMode(VALVE_READ, INPUT);
 
   Serial.begin(9600);
 
@@ -22,7 +25,7 @@ void setup() {
 
 void loop() {
   // Run forever
-  read_state = Valve_Status(valve_pin); //Calling the function for test. Would be replaced in main code with relevant function
+  read_state = Valve_Status(VALVE_READ); //Calling the function for test. Would be replaced in main code with relevant function
   Serial.println (read_state); //Test return from function
  
   actuate_valve(state);
