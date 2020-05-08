@@ -29,7 +29,7 @@ if (digitalRead(pin)==HIGH){  //Valve should be open when power is supplied. If 
 }
 else if (digitalRead(pin)==LOW){   //can be made analog if necessary to read extent of open/closed valve
   Serial.println("valve is closed");
-  return false; //open
+  return false; //closed
 }else {
     Serial.println("Not a boolean output; Debug code") ;//Just to make sure :)
   }
