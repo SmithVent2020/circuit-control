@@ -41,7 +41,7 @@ void loop() {
   state = !state;
   
  //Call Move_Insp_Valve
-  current_pos = Move_Insp_Valve(prop_valve_increment, current_pos); //Calling the function for test. Would be replaced in main code with relevant function
+  current_pos = Move_Insp_Valve(prop_valve_increment, current_pos); //Assuming in mm
   Serial.println (current_pos); //Test return from function
  
   delay(1000);
