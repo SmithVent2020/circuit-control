@@ -10,6 +10,7 @@
  const int RELAY_ENABLE = 22;
  const int VALVE_PIN = 21; //Reading pin from same valve
  bool state; // initialized as false by default
+ bool read_state; //initialized as false
 
 void setup() {
   //initialize pin modes with pinMode command
@@ -21,8 +22,8 @@ void setup() {
 
 void loop() {
   // Run forever
-  state = Valve_Status(valve_pin); //Calling the function for test. Would be replaced in main code with relevant function
-  Serial.println (state); //Test return from function
+  read_state = Valve_Status(valve_pin); //Calling the function for test. Would be replaced in main code with relevant function
+  Serial.println (read_state); //Test return from function
  
   actuate_valve(state);
   state = !state;
@@ -49,10 +50,8 @@ if (digitalRead(pin)==HIGH){  //Valve should be open when power is supplied. If 
   Serial.println("valve is open");
   return true; //open
 }
-else if (digitalRead(pin)==LOW){   //can be made analog if necessary to read extent of open/closed valve
+else if (digitalRead(pin)==LOW){   
   Serial.println("valve is closed");
   return false; //closed
-}else {
-    Serial.println("Not a boolean output; Debug code") ;//Just to make sure :)
-  }
+}
 }
