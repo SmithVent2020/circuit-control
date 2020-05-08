@@ -76,8 +76,15 @@ else if (digitalRead(pin)==LOW){
 
 float Move_Insp_Valve(float increment, float pos){  
  //Opens or closes the proportional inspiration valve by an increment 
- //(increment is positive if opening, negative if closing)and returns new positioN
-  pos = pos+increment;
-  analogWrite(PROP_VALVE, pos); //moves to new position
+ //(increment is positive if opening, negative if closing)and returns new position
+ float pos_v;
+ 
+  pos = pos+increment; //******assuming in mm
+  pos_v = (5/(9.5-2))*pos; //assuming 0-5V input signal, orifice range from datasheet 
+  pos_v = (255/5)*pos_v; //convert to analog. Remove if component below is used
+  analogWrite(PROP_VALVE, pos_v); //moves to new position
   return (pos); //store new position as current position in main code
+ 
+ // ***NOTE: Likely to need this component: https://tameson.com/valves/solenoid-valve/proportional/controller/316529-proportional-pwm-controller-12-24vdc-din-a-pg-burkert-316529.html
+ //for PWM conversion of voltage signal, or possibly a voltage divider in circuit, but unsure about that
 }
