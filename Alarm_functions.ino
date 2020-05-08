@@ -3,7 +3,7 @@
  * as strings and a list of the priorities coresponding to those alarm messages, where
  * true means high priority and false means medium priority
  * the part where the alarm messages are displayed on the LCD needs to be added,
- * the LCD updating is partially coded in commented code in the functions
+ * the LCD updating is partially coded in commented code in the functions dfd 
  */
 int yellow_LED_pin = 4;
 int red_LED_pin = 3;
@@ -13,7 +13,7 @@ void Activate_Alarm(String alarm_messages[], bool priorities[]){
   //This function activates the alarm and LEDs according to alarm priority
 
   //turn on LEDs according to priority of messages
-  for(int i=0; i<sizeof priorities/sizeof priorities[0]; i+=1){
+  for(int i=0; i<(sizeof(priorities)/sizeof(priorities[0]))-1; i+=1){
     if(priorities[i]== true){
       digitalWrite(red_LED_pin, HIGH);
     }
@@ -21,13 +21,12 @@ void Activate_Alarm(String alarm_messages[], bool priorities[]){
       digitalWrite(yellow_LED_pin, HIGH);
     }
   }
-  //  for(int i=0; i<sizeof alarm_messages/sizeof alarm_messages[0]; i+=1){
+  //  for(int i=0; i<sizeof(alarm_messages)/sizeof(alarm_messages[0]); i+=1){
   //    //print alarm message to LCD screen
   //  }
   
-  //turn on buzzer
-  tone(buz_pin,261);
-  delay(500); // wait half a second
+  //turn on buzzer for 1/2 second
+  tone(buz_pin,261,500);
 
   digitalWrite(red_LED_pin, LOW);
   digitalWrite(yellow_LED_pin, LOW);
