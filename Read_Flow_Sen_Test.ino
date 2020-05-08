@@ -6,7 +6,7 @@
 #define flow_sen_ex_pin A1  //  Expiriatory flow sensor analog output connected to analog pin 1
 
 float flow_read_in = 0;  // variable to store the inspiratory flow value read
-float flow_read_ex = 0;  // variable to store the inspiratory flow value read
+float flow_read_ex = 0;  // variable to store the expiratory flow value read
 
 
 
