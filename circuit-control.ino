@@ -327,7 +327,7 @@ void checkSensors(int sensorRanges[8]) {
 void activateAlarm(bool alarms[][8]) {
 
   // check if any high priority alarms are on  
-  for(int i=0; i<sizeof(alarms[HIGH_PRIORITY])-1 ; i++) {
+  for(int i=0; i<sizeof(alarms[HIGH_PRIORITY]); i++) {
     if(alarms[HIGH_PRIORITY][i] == true) {
       digitalWrite(RED_LED, HIGH);
       tone(BUZZER, 100, 1000); // turn on buzzer for 1000 ms at 100 Hz
@@ -338,7 +338,7 @@ void activateAlarm(bool alarms[][8]) {
 
   // if no high alarm, check if any medium priority alarms are on
   if(!alarmStatus) {
-    for(int i=0; i<sizeof(alarms[MED_PRIORITY])-1 ; i++) {
+    for(int i=0; i<sizeof(alarms[MED_PRIORITY]); i++) {
       if(alarms[MED_PRIORITY][i] == true) {
         digitalWrite(YELLOW_LED, HIGH);
         tone(BUZZER, 261, 500); //turn on buzzer for 500 ms at 26 Hz
