@@ -66,7 +66,7 @@ float flowOut = 0;  // variable to store the flow sensor value read on expirator
 bool alarmStatus;
 
 // enumerate alarm priority
-enum alarmPriotity {
+enum alarmPriority {
   HIGH_PRIORITY, // 0
   MED_PRIORITY   // 1
 };
