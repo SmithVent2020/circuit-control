@@ -51,7 +51,7 @@ const int O2_SENSOR = A8;
 float inspValvePosition = 0;  // initialize inspiratory valve position to closed
 float expValvePosition = 0;   // initialize expiratory valve position to closed
 float currentPosition = 0;    // of the proportional valve
-float propValveIncrement = 0; // of the proportional valve
+float propValveIncrement = 0; // of the proportional valve 
 
 // pressure sensor variables
 float pressureMixing = 0;  // variable to store the mixing chamber pressure value read
@@ -64,6 +64,7 @@ float oxygenConcentration = 0;  // variable to store the O2 value read
 // flow sensor variables
 float flowIn = 0;  // variable to store the flow sensor value read on inspiratory line
 float flowOut = 0;  // variable to store the flow sensor value read on expiratory line
+float breathVolume; //ongoing breath volume counter
 
 bool alarmStatus;
 
@@ -92,16 +93,26 @@ bool ventilatorOn;
 bool breathStatus;
 float breathTimer = 0; // time since beginning of last breath
 float expiratoryTime = 0;
-float maxBreathTime = 10000; // assuming PS_MODE (in ms)
+float inspiratoryTime = 0;
+float maxBreathTime = 10000; // assuming PS_MODE (in ms) <- I think this should be set within the PS function (Naylani)
+float loopTime = 500; //how long the loop should take in miliseconds
 
 // these default values needed to be configured (can then be overriden by user)
 float setO2Concentration = 20; // 20% default O2 concentration
 float pressureInspError = 0; // acceptable margin of error in inspiratory pressure
 float pressureInspMin = 10; // minimum inspiratory pressure
+float pressureExpMin = 2; //minimum pressure in expiratory line below which a breath is triggered
 float pressureInspMax = 100; // maximum inspiratory pressure
 float setTidalVolume = 0;
 float setBpm = 0; // breaths per minute
 float setIERatio = 0;
+float flowInspError = 0.1; //acceptable margin of error in inspiratory flow rate (calculated based on IE ratio)
+
+//Measured Patient variables to be displayed
+float actualIERatio = 0; //the actual IE ratio calculated using inspiratoryTime and expiratoryTime
+float actualBreathVolume = 0; //ongoing breath volume counter
+float pressurePlateau = 0; //measured plateau pressure
+float pressurePeak = 0; //measured peak pressure
 
 // should have a width of 6? to correspond to each of the sensors
 int sensorRanges[6] = {1, 1, 1, 1, 1, 1};
@@ -109,9 +120,11 @@ int sensorRanges[6] = {1, 1, 1, 1, 1, 1};
 //PID set-up
 //Define Variables we'll be connecting to
 double inspPIDSetpnt, inspPIDInpt, inspPIDOutpt; //define the inspiratory PID variables
+double O2PIDSetpnt, O2PIDinpt, O2PIDOutpt; //define O2 concentration PID variables
 
 //Specify the links and initial tuning parameters
 PID inspPID(&inspPIDInpt, &inspPIDOutpt, &inspPIDSetpnt,2,5,1, DIRECT); //creat inspiratory PID controller
+PID O2ConPID(&O2PIDinpt,&O2PIDOutpt, &O2PIDSetpnt, 1,2,3, DIRECT); // create O2 concentraion management PID controller  
 
 
 //-----------------------------------------------SET UP & MAIN LOOP-------------------------------------------------
@@ -197,26 +210,66 @@ void pressureSupport() {
 }
 
 /**
- * Volume Control algorithm
+ * Volume Control algorithm-----------------------------------------------------------------------------------------------------
  */
-void volumeControl() {
-   // check if status is inspiring
-  if (breathStatus == true) {
-    // inspiring logic
-  } else { 
-    // expiring logic
+void volumeControl(){
+  //This function controles the valves to provide volume control functionality
+  //and the minimum expiratory pressure (lower than PEEP) to indicate when the patient is trying to breath in
+
+  if(breathStatus ==false){
+    //if the patient is currently exhaling
+    float maxBreathTime = (1/setBpm)*60000; //maximum milliseconds per breath based on set bpm
+
+    if(pressureExp < pressureExpMin ||breathTimer >=maxBreathTime){
+      //if the patient is trying to breath in (pressureExp goes down below minimum)
+      //or the breath timer indicates that the next breath should start
+      beginBreath(); //begin a breath
+      
+    }else {
+      //the patient is still exhaling
+      expiratoryTime += loopTime; //increment the expiratory timer
+    }
+    
+  }else if(breathStatus == true){
+    //if the patient is currently inhaling
+    if(breathVolume >= setTidalVolume){
+      //if the volume of air inhaled is greater than or equal to the desired tidal volume
+      endBreath(); //end inspiration and record plateau pressure
+    
+    }else if(pressureInsp >= pressureInspMax-pressureInspError){
+      //if inspiratory pressure is exceeding acceptable limits (low compliance lung)
+      endBreath(); //end inspiration and record plateau pressure
+
+      //ADD TV NOT MET ALARM HERE --> Farida how does one do this?
+      
+    }else{
+      //patient is still inhaling
+      //calculate PID control
+      inspPID.Compute(); //compute PID control value
+      moveInspiratoryValve(inspPIDOutpt, inspValvePosition); //adjust the inspiratory valve according to the increment calculated by the PID controler
+      breathVolume += flowIn *loopTime; //update loop time
+      inspiratoryTime += loopTime; //update inspiratory timer
+      }
   }
+  breathTimer += loopTime; //update breath timer
 }
 
 /*functions used in the colume control and Pressure support algorithms
  * 
  */
- float beginBreath(float inspTimer){
-  //this function switches from expiration to inspiration
-  //it closes the O2, air and expiratory valves 
-  //and turns on the PID control for inspiratory valves
-  //it also resets the breath timer to zero
+ void beginBreath(){
+  /*
+   * this function switches from expiration to inspiration
+   * it closes the O2, air and expiratory valves
+   * turns off PID control for the O2 concentration,
+   * and turns on the PID control for inspiratory flow
+   * it also resets the breath timer to zero
+   */
 
+  breathStatus = true; //set breath to inspiratory
+
+  O2ConPID.SetMode(MANUAL); //turn off O2 concentration PID control
+  
   //close valves
   actuateValve(false, SV2_CONTROL); //close O2 valve
   actuateValve(false, SV1_CONTROL); //close air valve pin
@@ -225,16 +278,47 @@ void volumeControl() {
   //calculate desired inspiratory flow rate
   float desiredInspTime = setIERatio/(setBpm*(setIERatio+1));
   float desiredInspFlow = setTidalVolume/desiredInspTime; //THIS ASSUMES VOLUMETRIC FLOW Rate
-
+  
   inspPIDSetpnt = desiredInspFlow; //set the PID setpoint to the desired inspiratory flow rate
   inspPID.SetMode(AUTOMATIC); //Turn on inspiratory PID to open valves
 
   inspPID.Compute(); //do a round of inspiratory PID computing
-  moveInspiratoryValve(inspPIDOutpt, SV3_CONTROL); //move the inspiratory valve according to the increment calculated by the PID controler
+  moveInspiratoryValve(inspPIDOutpt, inspValvePosition); //move the inspiratory valve according to the increment calculated by the PID controler
 
   breathTimer = 0; //reset breath counter
-  inspTimer = 0; //reset inspiratory time counter
-  return inspTimer;
+  inspiratoryTime = 0; //reset inspiratory time counter
+}
+
+void endBreath(){
+  /*this function switches from expiration to inspiration
+   * it closes the inspiratory valve,
+   * pauses for air retention and measures the plateau pressure
+   * then opens the expiratory valve
+   * turns on O2 concentration PID control
+   * NOTE: O2 concentration management needs to be added
+   */
+  breathStatus = false; //set breath to expiratory
+  
+  inspPID.SetMode(MANUAL); // turn off inspiratory PID control
+  moveInspiratoryValve(-inspValvePosition, inspValvePosition); //close inspiratory valve 
+  
+  delay(200); // pause between insp and exp THIS NEEDS TO BE CHANGED AFTER CONSULTING WITH SYSTEM REQUIREMENTS TEAM
+  pressurePlateau = readPressureSensor(PRESSURE_INSP); //read plateau pressure
+  
+  actuateValve(true, SV4_CONTROL); // open expiration valve
+
+  O2PIDSetpnt = setO2Concentration; //set the desired O2 concentration as the setpoint for the O2 PID controller
+  O2ConPID.SetMode(AUTOMATIC); //turn on PID control for O2 concentration 
+  //Do something with the O2ConPID output once O2 concentration control method has been decided on
+
+  actuateValve(true, SV2_CONTROL); //open O2 valve
+  actuateValve(true, SV1_CONTROL); //open air valve pin
+
+  expiratoryTime = 0; //reset expiratory breath counter
+
+  actualIERatio = inspiratoryTime/expiratoryTime;
+  //display actual IE ratio
+
 }
  
 //---------------------------------------------DISPLAY------------------------------------------------------------
