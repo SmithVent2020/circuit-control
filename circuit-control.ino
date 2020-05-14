@@ -1,3 +1,5 @@
+#include <PID_v1.h>
+
 /**
  * SmithVent
  * Ventilator Control Circuit
@@ -26,9 +28,9 @@ const int YELLOW_LED = 3;
 const int RED_LED    = 4;
 
 // valve input and output pins
-const int SV1_CONTROL = 22; // relay pin that controls SV1
-const int SV2_CONTROL = 24; // relay pin that controls SV2
-const int SV4_CONTROL = 26; // relay pin that controls SV4
+const int SV1_CONTROL = 22; // relay pin that controls SV1 (air?)
+const int SV2_CONTROL = 24; // relay pin that controls SV2 (O2?)
+const int SV4_CONTROL = 26; // relay pin that controls SV4 (exp?)
 const int SV3_CONTROL = 5;  // proportional valve pin (?)
 
 // flow sensor input pins
@@ -104,6 +106,12 @@ float setIERatio = 0;
 // should have a width of 6? to correspond to each of the sensors
 int sensorRanges[6] = {1, 1, 1, 1, 1, 1};
 
+//PID set-up
+//Define Variables we'll be connecting to
+double inspPIDSetpnt, inspPIDInpt, inspPIDOutpt; //define the inspiratory PID variables
+
+//Specify the links and initial tuning parameters
+PID inspPID(&inspPIDInpt, &inspPIDOutpt, &inspPIDSetpnt,2,5,1, DIRECT); //creat inspiratory PID controller
 
 
 //-----------------------------------------------SET UP & MAIN LOOP-------------------------------------------------
@@ -200,6 +208,35 @@ void volumeControl() {
   }
 }
 
+/*functions used in the colume control and Pressure support algorithms
+ * 
+ */
+ float beginBreath(float inspTimer){
+  //this function switches from expiration to inspiration
+  //it closes the O2, air and expiratory valves 
+  //and turns on the PID control for inspiratory valves
+  //it also resets the breath timer to zero
+
+  //close valves
+  actuateValve(false, SV2_CONTROL); //close O2 valve
+  actuateValve(false, SV1_CONTROL); //close air valve pin
+  actuateValve(false, SV4_CONTROL); // close expiration valve
+
+  //calculate desired inspiratory flow rate
+  float desiredInspTime = setIERatio/(setBpm*(setIERatio+1));
+  float desiredInspFlow = setTidalVolume/desiredInspTime; //THIS ASSUMES VOLUMETRIC FLOW Rate
+
+  inspPIDSetpnt = desiredInspFlow; //set the PID setpoint to the desired inspiratory flow rate
+  inspPID.SetMode(AUTOMATIC); //Turn on inspiratory PID to open valves
+
+  inspPID.Compute(); //do a round of inspiratory PID computing
+  moveInspiratoryValve(inspPIDOutpt, SV3_CONTROL); //move the inspiratory valve according to the increment calculated by the PID controler
+
+  breathTimer = 0; //reset breath counter
+  inspTimer = 0; //reset inspiratory time counter
+  return inspTimer;
+}
+ 
 //---------------------------------------------DISPLAY------------------------------------------------------------
 /**
  * gets latest user input on display and updates user variables
