@@ -236,18 +236,16 @@ void actuateValve(bool valveState, int pin) {
  * Increment is positive if opening, negative if closing
  * 
  * NOTE by @Mandira:
- * Likely to need this component: https://tameson.com/valves/solenoid-valve/proportional/controller/316529-proportional-pwm-controller-12-24vdc-din-a-pg-burkert-316529.html
- * for PWM conversion of voltage signal, or possibly a voltage divider in circuit, but unsure about that
  * 
  * @param increment - increment assuming in mm
  * @param increment - current position assuming in mm
- * @returns new position
+ * @returns new position in mm 
+ * Change 16.51 below to 0.65 to compute in inches 
  */
 float moveInspiratoryValve(float increment, float pos) {  
  
-  float posVoltage = (5/(9.5-2)) * (pos + increment) ; // assuming 0-5V input signal, orifice range from datasheet 
-  posVoltage = (255/5) * posVoltage; // convert to analog. Remove if component below is used
-  analogWrite(SV3_CONTROL, posVoltage); // moves to new position
+  float posVoltage = (5/16.51) * (pos + increment) ; // outputs a 0-5V input signal to the solenoid valve controller, orifice size 16.51mm (0.65") for iQ valves 700048
+  analogWrite(SV3_CONTROL, posVoltage); // moves to new position, <pos> mm
   
   return(pos + increment); 
 }
