@@ -1,0 +1,45 @@
+name: Build
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+        arduino-platform: ["arduino:avr"]
+
+        include:
+          - arduino-platform: "arduino:avr"
+            fqbn: "arduino:avr:mega:cpu=atmega2560"
+
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Arduino CLI
+      uses: arduino/setup-arduino-cli@v1.0.0
+      
+    # Runs a single command using the runners shell
+    - name: Install platform
+      run: |
+        arduino-cli core update-index
+        arduino-cli core install ${{ matrix.arduino-platform }}
+        arduino-cli lib install SD LiquidCrystal
+
+    # Runs the arudino cli compile command on the sketch
+    - name: Compile Sketch
+      run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./circuit-control.ino
