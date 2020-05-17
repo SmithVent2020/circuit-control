@@ -92,8 +92,9 @@ int ventMode = PS_MODE; // set to VolumeControl by default
 bool ventilatorOn;
 bool breathStatus;
 float breathTimer = 0; // time since beginning of last breath
-float expiratoryTime = 0;
-float inspiratoryTime = 0;
+float breathBeginTime = millis(); //the time stamp when the last inspirtion began
+float expiratoryTime = 0;//INITIALIZE THIS TO SOME VALUE based on IE ratio to avoid dividing by 0 in the first loop
+float inspiratoryTime = 0; //INITIALIZE THIS TO SOME VALUE based on IE ratio to avoid calculating 0 in the first loop for actual IE ratio
 float maxBreathTime = 10000; // assuming PS_MODE (in ms) <- I think this should be set within the PS function (Naylani)
 float loopTime = 500; //how long the loop should take in miliseconds
 
@@ -347,14 +348,13 @@ void volumeControl(){
     //if the patient is currently exhaling
     float maxBreathTime = (1/setBpm)*60000; //maximum milliseconds per breath based on set bpm
 
-    if(pressureExp < pressureExpMin ||breathTimer >=maxBreathTime){
+    if(pressureExp < pressureExpMin ||(millis() - breathTimer )>=maxBreathTime){
       //if the patient is trying to breath in (pressureExp goes down below minimum)
       //or the breath timer indicates that the next breath should start
       beginBreath(desiredInspFlow); //begin a breath
       
     }else {
       //the patient is still exhaling
-      expiratoryTime += loopTime; //increment the expiratory timer
     }
     
   }else if(breathStatus == true){
@@ -377,10 +377,9 @@ void volumeControl(){
       inspPID.Compute(); //compute PID control value
       moveInspiratoryValve(inspiratoryPIDOutput, inspValvePosition); //adjust the inspiratory valve according to the increment calculated by the PID controler
       breathVolume += flowIn *loopTime; //update loop time 
-      inspiratoryTime += loopTime; //update inspiratory timer
+      
       }
   }
-  breathTimer += loopTime; //update breath timer
 }
 
 /*functions used in the colume control and Pressure support algorithms
@@ -396,6 +395,11 @@ void volumeControl(){
    */
 
   breathStatus = true; //set breath to inspiratory
+  
+  //subtract time at beginning of expiration from current time to get duration of expiration
+  expiratoryTime = millis() - expiratoryTime;
+
+  actualIERatio = inspiratoryTime/(expiratoryTime); // calculate actual IE ratio from the previous breath cycle
 
   O2ConPID.SetMode(MANUAL); //turn off O2 concentration PID control
   
@@ -411,8 +415,9 @@ void volumeControl(){
   inspPID.Compute(); //do a round of inspiratory PID computing
   moveInspiratoryValve(inspiratoryPIDOutput, inspValvePosition); //move the inspiratory valve according to the increment calculated by the PID controler
 
-  breathTimer = 0; //reset breath counter
-  inspiratoryTime = 0; //reset inspiratory time counter
+  breathTimer = millis(); //reset breath counter
+  beginBreath = millis()
+  inspiratoryTime = millis(); //reset inspiratory time counter
 }
 
 void endBreath(){
@@ -424,6 +429,10 @@ void endBreath(){
    * NOTE: O2 concentration management needs to be added
    */
   breathStatus = false; //set breath to expiratory
+  
+  //subtract the time at beginning of inspiration to current time 
+  //to calculate inspiration length
+  inspiratoryTime = millis() - inspiratoryTime; 
   
   inspPID.SetMode(MANUAL); // turn off inspiratory PID control
   moveInspiratoryValve(-inspValvePosition, inspValvePosition); //close inspiratory valve 
@@ -439,12 +448,10 @@ void endBreath(){
 
   actuateValve(true, SV2_CONTROL); //open O2 valve
   actuateValve(true, SV1_CONTROL); //open air valve pin
-
-  expiratoryTime = 0; //reset expiratory breath counter
-
-  actualIERatio = inspiratoryTime/expiratoryTime;
+  
   //display actual IE ratio
-
+  expiratoryTime = millis(); //reset expiratory breath counter
+  
 }
 //-------------------------------------------------------------------Main Loop-------------------------------------------------------------
 // Run forever
