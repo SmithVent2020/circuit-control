@@ -247,7 +247,7 @@ void volumeControl(){
       //calculate PID control
       inspPID.Compute(); //compute PID control value
       moveInspiratoryValve(inspPIDOutpt, inspValvePosition); //adjust the inspiratory valve according to the increment calculated by the PID controler
-      breathVolume += flowIn *loopTime; //update loop time
+      breathVolume += flowIn *loopTime; //update loop time 
       inspiratoryTime += loopTime; //update inspiratory timer
       }
   }
@@ -345,11 +345,19 @@ void updateDisplay() {
  * @returns
  */
 void actuateValve(bool valveState, int pin) {
-  if (valveState == true) {
-    digitalWrite(pin, LOW); // relay is active low, so it turns on when we set pin to LOW
-  } else {
-    digitalWrite(pin, HIGH);
-  }
+  if(pin == SV4_CONTROL){
+    //if it is the normally open valve
+    if (valveState == true) {
+      digitalWrite(pin, HIGH); //write HIGH to close
+    } else {
+      digitalWrite(pin, LOW); //write LOW to open
+    }
+  }else{ //otherwise if the valve is noramally open:
+    if (valveState == true) {
+      digitalWrite(pin, LOW); // relay is active low, so it turns on when we set pin to LOW
+    } else {
+      digitalWrite(pin, HIGH);
+    }
 }
 
 /**
