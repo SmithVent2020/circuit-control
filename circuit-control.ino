@@ -114,6 +114,7 @@ float flowInspError = 0.1; //acceptable margin of error in inspiratory flow rate
 float actualIERatio = 0; //the actual IE ratio calculated using inspiratoryTime and expiratoryTime
 float pressurePlateau = 0; //measured plateau pressure
 float pressurePeak = 0; //measured peak pressure
+float maxPressureLog = 0; //log of the current highest pressure value in current breath for detecting peak pressure
 
 // should have a width of 6? to correspond to each of the sensors
 int sensorRanges[6] = {1, 1, 1, 1, 1, 1};
@@ -378,6 +379,11 @@ void volumeControl(){
       loopTimer = millis() - loopTimer; // calculate time of last loop
       breathVolume += flowIn *loopTimer; //update breath volume based on current volumetric flow rate
       loopTimer = millis(); // reset loop timer 
+
+      if(pressureInsp > maxPressureLog){
+        //update maxPressureLog to always have the highest pressure value for the current breath
+        maxPressureLog = pressureInsp;
+      }
       }
   }
 }
@@ -400,6 +406,8 @@ void volumeControl(){
   expiratoryTime = millis() - expiratoryTime;
 
   actualIERatio = inspiratoryTime/(expiratoryTime); // calculate actual IE ratio from the previous breath cycle
+  
+  //display Peak Pressure
 
   O2ConPID.SetMode(MANUAL); //turn off O2 concentration PID control
   
@@ -434,6 +442,10 @@ void endBreath(){
   //subtract the time at beginning of inspiration to current time 
   //to calculate inspiration length
   inspiratoryTime = millis() - inspiratoryTime; 
+
+  //set the peak pressure to the maximum pressure recorded during inspiration
+  pressurePeak = maxPressureLog; //record the peak pressure from last breath to be displayed
+  maxPressureLog = 0; //reset the maxPressureLog;
   
   inspPID.SetMode(MANUAL); // turn off inspiratory PID control
   moveInspiratoryValve(-inspValvePosition, inspValvePosition); //close inspiratory valve 
@@ -457,7 +469,6 @@ void endBreath(){
   if(breathVolume < setTidalVolume - tidalVolumeError){
     //alarm.activateAlarm(alarmCodes.ALARM_TIDAL_LOW)
   }
-  
 }
 //-------------------------------------------------------------------Main Loop-------------------------------------------------------------
 // Run forever
