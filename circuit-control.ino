@@ -96,7 +96,7 @@ float breathBeginTime = millis(); //the time stamp when the last inspirtion bega
 float expiratoryTime = 0;//INITIALIZE THIS TO SOME VALUE based on IE ratio to avoid dividing by 0 in the first loop
 float inspiratoryTime = 0; //INITIALIZE THIS TO SOME VALUE based on IE ratio to avoid calculating 0 in the first loop for actual IE ratio
 float maxBreathTime = 10000; // assuming PS_MODE (in ms) <- I think this should be set within the PS function (Naylani)
-float loopTime = 500; //how long the loop should take in miliseconds
+float loopTimer =0; //to time how long the last loop was (used for updating volume of current breath)
 
 // these default values needed to be configured (can then be overriden by user)
 float setO2Concentration = 20; // 20% default O2 concentration
@@ -105,13 +105,13 @@ float pressureInspMin = 10; // minimum inspiratory pressure
 float pressureExpMin = 2; //minimum pressure in expiratory line below which a breath is triggered
 float pressureInspMax = 100; // maximum inspiratory pressure
 float setTidalVolume = 0;
+float tidalVolumeError = 0.1; //PLACEHOLDER VALUE acceptable tidal volume errors
 float setBpm = 0; // breaths per minute
 float setIERatio = 0;
 float flowInspError = 0.1; //acceptable margin of error in inspiratory flow rate (calculated based on IE ratio)
 
 //Measured Patient variables to be displayed
 float actualIERatio = 0; //the actual IE ratio calculated using inspiratoryTime and expiratoryTime
-float actualBreathVolume = 0; //ongoing breath volume counter
 float pressurePlateau = 0; //measured plateau pressure
 float pressurePeak = 0; //measured peak pressure
 
@@ -359,6 +359,7 @@ void volumeControl(){
     
   }else if(breathStatus == true){
     //if the patient is currently inhaling
+    
     if(breathVolume >= setTidalVolume){
       //if the volume of air inhaled is greater than or equal to the desired tidal volume
       endBreath(); //end inspiration and record plateau pressure
@@ -366,18 +367,17 @@ void volumeControl(){
     }else if(pressureInsp >= pressureInspMax-pressureInspError){
       //if inspiratory pressure is exceeding acceptable limits (low compliance lung)
       endBreath(); //end inspiration and record plateau pressure
-
-      //ADD TV NOT MET ALARM HERE --> Farida how does one do this?
       
     }else{
       //patient is still inhaling
-      //calculate PID control
+      //calculate PID control;
       inspiratoyPIDSetpoint = desiredInspFlow; //set desired inspiratory flow rate as the setpoint to the PID controller
       inspiratoryPIDInput = flowIn;
       inspPID.Compute(); //compute PID control value
       moveInspiratoryValve(inspiratoryPIDOutput, inspValvePosition); //adjust the inspiratory valve according to the increment calculated by the PID controler
-      breathVolume += flowIn *loopTime; //update loop time 
-      
+      loopTimer = millis() - loopTimer; // calculate time of last loop
+      breathVolume += flowIn *loopTimer; //update breath volume based on current volumetric flow rate
+      loopTimer = millis(); // reset loop timer 
       }
   }
 }
@@ -416,8 +416,9 @@ void volumeControl(){
   moveInspiratoryValve(inspiratoryPIDOutput, inspValvePosition); //move the inspiratory valve according to the increment calculated by the PID controler
 
   breathTimer = millis(); //reset breath counter
-  beginBreath = millis()
+  //beginBreath = millis();
   inspiratoryTime = millis(); //reset inspiratory time counter
+  breathVolume = 0; //reset breath volume counter 
 }
 
 void endBreath(){
@@ -451,6 +452,11 @@ void endBreath(){
   
   //display actual IE ratio
   expiratoryTime = millis(); //reset expiratory breath counter
+
+  //decide if the tidal volume not met alarm should be activated
+  if(breathVolume < setTidalVolume - tidalVolumeError){
+    //alarm.activateAlarm(alarmCodes.ALARM_TIDAL_LOW)
+  }
   
 }
 //-------------------------------------------------------------------Main Loop-------------------------------------------------------------
