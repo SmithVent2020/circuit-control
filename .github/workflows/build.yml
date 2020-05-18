@@ -38,7 +38,7 @@ jobs:
       run: |
         arduino-cli core update-index
         arduino-cli core install ${{ matrix.arduino-platform }}
-        arduino-cli lib install SD LiquidCrystal
+        arduino-cli lib install SD PID
 
     # Runs the arudino cli compile command on the sketch
     - name: Compile Sketch
