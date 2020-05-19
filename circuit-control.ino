@@ -102,7 +102,7 @@ float loopTimer =0; //to time how long the last loop was (used for updating volu
 float setO2Concentration = 20; // 20% default O2 concentration
 float pressureInspError = 0; // acceptable margin of error in inspiratory pressure
 float pressureInspMin = 10; // minimum inspiratory pressure
-float pressureExpMin = 2; //minimum pressure in expiratory line below which a breath is triggered
+float pressureSensitivity = 2; //mmH20 below PEEP that triggers a breath
 float pressureInspMax = 100; // maximum inspiratory pressure
 float setTidalVolume = 0;
 float tidalVolumeError = 0.1; //PLACEHOLDER VALUE acceptable tidal volume errors
@@ -349,13 +349,14 @@ void volumeControl(){
     //if the patient is currently exhaling
     float maxBreathTime = (1/setBpm)*60000; //maximum milliseconds per breath based on set bpm
 
-    if(pressureExp < pressureExpMin ||(millis() - breathTimer )>=maxBreathTime){
+    if(pressureExp < PEEP - pressureSensitivity ||(millis() - breathTimer )>=maxBreathTime){
       //if the patient is trying to breath in (pressureExp goes down below minimum)
       //or the breath timer indicates that the next breath should start
       beginBreath(desiredInspFlow); //begin a breath
       
     }else {
       //the patient is still exhaling
+      //add O2 concentration control function here
     }
     
   }else if(breathStatus == true){
