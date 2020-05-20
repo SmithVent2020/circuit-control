@@ -359,7 +359,7 @@ void volumeControl(){
     }else {
       //the patient is still exhaling
       loopTimer = millis() - loopTimer; // calculate time of last loop
-      expVolume += flowOut *loopTimer; //update breath volume based on current volumetric flow rate
+      expVolume += flowOut *loopTimer; //update breath volume based on current volumetric flow rate (CHECK UNITS)
       //add O2 concentration control function here
     }
     
