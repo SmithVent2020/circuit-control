@@ -64,7 +64,8 @@ float oxygenConcentration = 0;  // variable to store the O2 value read
 // flow sensor variables
 float flowIn = 0;  // variable to store the flow sensor value read on inspiratory line
 float flowOut = 0;  // variable to store the flow sensor value read on expiratory line
-float breathVolume; //ongoing breath volume counter
+float inspVolume; //ongoing volume counter for inspiration
+float expVolume; // ongoing volume counter for expiration
 
 bool alarmStatus;
 
@@ -109,6 +110,7 @@ float tidalVolumeError = 0.1; //PLACEHOLDER VALUE acceptable tidal volume errors
 float setBpm = 0; // breaths per minute
 float setIERatio = 0;
 float flowInspError = 0.1; //acceptable margin of error in inspiratory flow rate (calculated based on IE ratio)
+float PEEP = 5; 
 
 //Measured Patient variables to be displayed
 float actualIERatio = 0; //the actual IE ratio calculated using inspiratoryTime and expiratoryTime
@@ -356,13 +358,15 @@ void volumeControl(){
       
     }else {
       //the patient is still exhaling
+      loopTimer = millis() - loopTimer; // calculate time of last loop
+      expVolume += flowOut *loopTimer; //update breath volume based on current volumetric flow rate
       //add O2 concentration control function here
     }
     
   }else if(breathStatus == true){
     //if the patient is currently inhaling
     
-    if(breathVolume >= setTidalVolume){
+    if(inspVolume >= setTidalVolume){
       //if the volume of air inhaled is greater than or equal to the desired tidal volume
       endBreath(); //end inspiration and record plateau pressure
     
@@ -378,15 +382,15 @@ void volumeControl(){
       inspPID.Compute(); //compute PID control value
       moveInspiratoryValve(inspiratoryPIDOutput, inspValvePosition); //adjust the inspiratory valve according to the increment calculated by the PID controler
       loopTimer = millis() - loopTimer; // calculate time of last loop
-      breathVolume += flowIn *loopTimer; //update breath volume based on current volumetric flow rate
-      loopTimer = millis(); // reset loop timer 
+      inspVolume += flowIn *loopTimer; //update breath volume based on current volumetric flow rate
 
       if(pressureInsp > maxPressureLog){
         //update maxPressureLog to always have the highest pressure value for the current breath
         maxPressureLog = pressureInsp;
       }
-      }
+    }
   }
+ loopTimer = millis(); // reset loop timer
 }
 
 /*functions used in the colume control and Pressure support algorithms
@@ -407,8 +411,6 @@ void volumeControl(){
   expiratoryTime = millis() - expiratoryTime;
 
   actualIERatio = inspiratoryTime/(expiratoryTime); // calculate actual IE ratio from the previous breath cycle
-  
-  //display Peak Pressure
 
   O2ConPID.SetMode(MANUAL); //turn off O2 concentration PID control
   
@@ -427,7 +429,10 @@ void volumeControl(){
   breathTimer = millis(); //reset breath counter
   //beginBreath = millis();
   inspiratoryTime = millis(); //reset inspiratory time counter
-  breathVolume = 0; //reset breath volume counter 
+  inspVolume = 0; //reset breath volume counter 
+
+  //update Peak Pressure on display
+  //update expiratory volume on display 
 }
 
 void endBreath(){
@@ -439,6 +444,7 @@ void endBreath(){
    * NOTE: O2 concentration management needs to be added
    */
   breathStatus = false; //set breath to expiratory
+  expVolume = 0; //reset expiratory volume counter
   
   //subtract the time at beginning of inspiration to current time 
   //to calculate inspiration length
@@ -467,9 +473,10 @@ void endBreath(){
   expiratoryTime = millis(); //reset expiratory breath counter
 
   //decide if the tidal volume not met alarm should be activated
-  if(breathVolume < setTidalVolume - tidalVolumeError){
+  if(inspVolume < setTidalVolume - tidalVolumeError){
     //alarm.activateAlarm(alarmCodes.ALARM_TIDAL_LOW)
   }
+  //update inspiratory volume on display
 }
 //-------------------------------------------------------------------Main Loop-------------------------------------------------------------
 // Run forever
