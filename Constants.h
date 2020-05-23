@@ -30,9 +30,9 @@ struct ValveInfo {
 
 // Timing Settings
 const float LOOP_PERIOD = 0.03;       // The period (s) of the control loop
-const float HOLD_IN_DURATION = 0.1;   // Duration (s) to pause after inhalation
+const float HOLD_INSP_DURATION = 0.1;   // Duration (s) to pause after inhalation
 const float MIN_PEEP_PAUSE = 0.05;    // Time (s) to pause after exhalation / before watching for an assisted inhalation
-const float MAX_EX_DURATION = 1.00;   // Maximum exhale duration (s)
+const float MAX_EXP_DURATION = 1.00;  // Maximum exhale duration (s)
 
 // ---------------------
 // PINS
@@ -66,24 +66,27 @@ const int O2_SENSOR = A8;
 // ---------------------
 
 // Patient Values
-const int BPM_MIN = 10;            // respiratory rate
+const int BPM_MIN = 10;         // respiratory rate
 const int BPM_MAX = 35;
-const int BPM_RES = 1;             // resolution (increments of 1)
-const int O2_MIN = 20;          
+const int BPM_RES = 1;          // resolution (increments of 1)
+const int O2_MIN = 21;          
 const int O2_MAX = 100;         
-const int O2_RES = 1;            // resolution (increments of 1)   
+const int O2_RES = 1;           // resolution (increments of 1)   
 const float IE_MIN = 1;
 const float IE_MAX = 4;
-const float IE_RES = 0.1;          // resolution (increments of 0.1)    
-const float APNEA_BACKUP = 15;     // in seconds
-const float TIDAL_VOLUME = 400;    // in mL (cc's)
+const float IE_RES = 0.1;       // resolution (increments of 0.1)  
+const float ERROR_VOLUME = 80;  // acceptable margin of error in tidal volume (should be 20% of VT)
+const float TIDAL_VOLUME = 400; // in mL (cc's)  
+const float APNEA_BACKUP = 15;  // in seconds
+const float CYCLE_OFF = 025;    // % peak flow at which to switch to EXP in PS_MODE
+const float RISE_TIME = 4;      // max time it takes to reach PiP  
 
 // Safety settings
 const float MAX_PRESSURE = 40.0;        // Trigger high pressure alarm
 const float MAX_PLATEAU_PRESSURE = 30;  // Trigger Pplat (cmH2O) alarm 
 const float MIN_PLATEAU_PRESSURE = 5.0; // Trigger low insp pressure alarm
-const float ERROR_PRESSURE = 0.5;       // acceptable margin of error in inspiratory pressure (in cmH2O)
-const float ERROR_VOLUME = 80;          // acceptable margin of error in tidal volume (should be 20% of VT)
+const float SENSITIVITY_PRESSURE = 0.5; // acceptable margin of error in inspiratory pressure (in cmH2O)
+
 
 // ---------------------
 // PID Control Values

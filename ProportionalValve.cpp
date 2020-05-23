@@ -1,14 +1,26 @@
 #include "ProportionalValve.h"
 #include "PID_v1.h"
 
+/**
+ * Initializes PID control with constant gains
+ */
+// ProportionalValve::ProportionalValve() {
+//   position_ = 0.0;
+//   valve_pin_ = SV3_CONTROL;
+// }
 
+/**
+ * Set PID gains to tuned kp, ki, and kd values
+ */ 
 void ProportionalValve::setGains(double kp, double ki, double kd) {
   kp_ = kp;
   ki_ = ki;
   kd_ = kd;
 }
 
-// move proportional valve (in mm)
+/**
+ * Moves proportional valve given an increment in mm
+ */ 
 void ProportionalValve::move(float increment) {
   // increment position
   position_ += increment;
@@ -17,34 +29,40 @@ void ProportionalValve::move(float increment) {
   float orificeSize = 16.51; // size for iQ valves 700048 in mm
 
   // calculate voltage and move to new position
-  float voltage = (valveRange/orificeSize) * position_ ; 
+  float voltage = (valveRange/orificeSize) * position_ ;
+
+  // analogWrite takes a value between 0-255, so does this need to change?
   analogWrite(valve_pin_, voltage);       
 }
 
 /**
- * Trigger inspiration 
+ * Trigger inspiration by starting PID control
  */ 
 void ProportionalValve::beginBreath(float tInsp, float setVT) {
   // set setpoint to desired inspiratory flow rate ()
   float pid_setpoint_ = setVT/tInsp;
   
   // turn on PID to open valves
-  pid_control_.SetMode(AUTOMATIC);
+  controller.SetMode(AUTOMATIC);
 
-  pid_control_.Compute(); // do a round of inspiratory PID computing
+  // first valve opening
+  maintainBreath();
+}
+
+/**
+ * Compute PID output and continue moving the valve
+ */ 
+void ProportionalValve::maintainBreath() {
+  controller.Compute(); // do a round of inspiratory PID computing
   move(pid_output_);      // move according to the position calculated by the PID controller
 }
 
 /**
  * Trigger expiration
  */ 
-void ProportionalValve::endBreath(float tInsp, float setVT) {
-  // set setpoint to desired inspiratory flow rate 
-  // not sure if this needs to be here
-  float pid_setpoint_ = setVT/tInsp;
-  
+void ProportionalValve::endBreath() {  
   // turn off insp PID computing
-  pid_control_.SetMode(MANUAL);
+  controller.SetMode(MANUAL);
 
   move(-1 * position()); // close valve by reseting position, should be 0
 }

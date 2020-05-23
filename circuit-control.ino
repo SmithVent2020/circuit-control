@@ -25,12 +25,10 @@
 // Cycle parameters
 unsigned long cycleCount = 0;
 unsigned long tCycleTimer;     // Absolute time (s) at start of each breathing cycle
-
 unsigned long tInsp;           // Calculated time (s) since tCycleTimer for end of IN_STATE
 unsigned long tHoldInsp;       // Calculated time (s) since tCycleTimer for end of HOLD_IN_STATE
 unsigned long tExp;            // Calculated time (s) since tCycleTimer for end of EX_STATE
 unsigned long tPeriod;         // Calculated time (s) since tCycleTimer for end of cycle
-
 unsigned long tPeriodActual;   // Actual time (s) since tCycleTimer at end of cycle (for logging)
 unsigned long tLoopTimer;      // Actual time (s) since start of each control loop iteration
 
@@ -59,8 +57,8 @@ Pressure expPressureReader(PRESSURE_EXP);
 Pressure reservoirPressureReader(PRESSURE_RESERVOIR);
 
 // Flow
-Flow flowInReader = new Flow(FLOW_IN);
-Flow flowOutReader = new Flow(FLOW_OUT);
+Flow flowInReader(FLOW_IN);
+Flow flowOutReader(FLOW_OUT);
 
 // Oxygen
 Oxygen oxygenReader;
@@ -70,18 +68,31 @@ AlarmManager alarm;
 
 // settings
 // @TODO: update these values from UI inputs
-struct settings {
+struct vs_settings {
   int volume = 500;  // Tidal volume
   int bpm = 35;      // Respiratory rate
   float ie = 0.5;    // Inhale/exhale ratio
   float peak = 35;   // peak pressure (PiP)
-  int o2 = 20;       // O2 concentration
-} settings;
+  int o2 = 21;       // O2 concentration
+  float sensitivity = 3;  // pressure sensitivity
+} vc_settings;
+
+// settings
+// @TODO: update these values from UI inputs
+struct ps_settings {
+  int bpm = 35;           // Respiratory rate
+  float cycleOff = 0.25;  // cycle off % (peak flow % at which to stop pumping air)
+  float peak = 35;        // peak pressure (PiP) above peep
+  float sensitivity = 3;  // pressure sensitivity
+  int o2 = 21;            // O2 concentration
+  int backup_bpm = 35;    // Backup BPM
+  float backup_ie = 0.5;  // Backup IE ratio
+} ps_settings;
 
 //--------------Declare Functions--------------
 
 // Helper function that returns time elapsed 
-inline unsigned long now() { return millis() * 1e-3; }
+inline unsigned long now() { return millis() / 1000; }
 
 // Set the current state in the state machine
 void setState(States newState);
@@ -95,8 +106,8 @@ void handleErrors();
 // Helper function that gets all sensor readings
 void readSensors();
 
-// Helper function that returns time elapsed 
-unsigned long timeElapsed(unsigned long startTime);
+// Helper function that returns time elapsed in sec
+unsigned long timeElapsed(unsigned long startTimeSec);
 
 // PS algorithm
 void pressureSupport();
@@ -134,13 +145,12 @@ void setup() {
 
 // Run forever
 void loop() {
-
   // All States
-  // display.fetchValues(); // @TODO: implementing fetch new values from UI
-  calculateWaveform();   // flow graph for display
-  readSensors(); 
+  // @TODO: alarm maintenance
+  // display.fetchValues() // @TODO: fetch new values from display
+  calculateWaveform();
+  readSensors();
   handleErrors();        // check thresholds against sensor values
-  alarm.maintainAlarms();
   // display.update();   // @TODO: update display with sensor readings and flow graph
 
   // @TODO: implement OFF button functionality to UI with confirmation
@@ -150,7 +160,14 @@ void loop() {
 
   // @TODO: pull out common code
   // PS and VC currently have a lot of common code that can be re-used
-  ventMode == PS_MODE ? pressureSupport() : volumeControl();
+  if (ventMode == PS_MODE) {
+    // update ps_settings
+    pressureSupport();
+  } 
+  else {
+    // update vc_settings
+    volumeControl();
+  }
 }
 
 void pressureSupport() {
@@ -160,6 +177,12 @@ void pressureSupport() {
       // @TODO: implement a turnOffAll method in AlarmManager class to be used here
       // turn off ongoing alarms after confirmation
       // close all valves?
+      airValve.close();   
+      oxygenValve.close(); 
+      propValve.endBreath();
+
+      // keep expiratory valve open?
+      expValve.open();
       break;
 
     case INSP_STATE:
@@ -174,13 +197,15 @@ void pressureSupport() {
         oxygenValve.close(); 
         expValve.close();
 
-        // move insp valve using set VT and calculated insp time
-        propValve.beginBreath(tInsp, settings.volume);
+        // turn on PID for inspiratory valve (input = pressure, setpoint = 0)
         cycleCount++;
       }
 
+      // compute PID based on linear pressure function 
+
       // check if we reached peak pressure
-      if (inspPressureReader.peak() >= settings.peak) {
+      if (inspPressureReader.peak() >= ps_settings.peak) {
+        flowInReader.setPeakAndReset();
         setState(HOLD_INSP_STATE);
       }
       break;
@@ -190,8 +215,9 @@ void pressureSupport() {
         enteringState = false;
       }
 
-      if (timeElapsed(tCycleTimer) > tHoldInsp) {
-        inspPressureReader.setPlateau();
+      // still PID, setpoint should be peak constantly 
+
+      if(flowInReader.get() < (CYCLE_OFF * flowInReader.peak())) {
         setState(EXP_STATE);
       }
       break;  
@@ -200,13 +226,15 @@ void pressureSupport() {
       if (enteringState) {
         enteringState = false;
         // close prop valve and open all others
-        propValve.endBreath(tInsp, settings.volume);
+        propValve.endBreath();
         expValve.open();   
         airValve.open();
-        oxygenValve.open();
+
+        // turn on PID for oxygen valve (beginBreath)
       }
 
       // check whether or not to go into PEEP_PAUSE_STATE
+      // not sure if this check is correct here
       if (timeElapsed(tCycleTimer) > tExp) {
         setState(PEEP_PAUSE_STATE);
       }
@@ -232,10 +260,9 @@ void pressureSupport() {
       // using peep here, but may need to use a lower pressure threshold
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep();
 
-      if (patientTriggered || timeElapsed(tCycleTimer) > tPeriod) {
-        if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
+      if (patientTriggered) {
         inspPressureReader.setPeakAndReset();
-        // @TODO: write peak, PEEP, and Pplat to display
+        // @TODO: write peak, and PEEP to display
         setState(INSP_STATE);
       } 
 
@@ -253,7 +280,13 @@ void volumeControl() {
   switch (state) {
     case OFF_STATE: 
       // turn off ongoing alarms after confirmation
-      // close all valves?
+      // close valves
+      oxygenValve.close();
+      airValve.close();
+      propValve.endBreath();
+
+      // keep expiratory valve open?
+      expValve.open();
       break;
 
     case INSP_STATE:
@@ -267,8 +300,14 @@ void volumeControl() {
         oxygenValve.close(); 
         expValve.close();
 
-        cycleCount++;
+        // move insp valve using set VT and calculated insp time
+        propValve.beginBreath(tInsp, vc_settings.volume);
+        cycleCount++; 
       }
+
+      // keep opening valve until tInsp is elapsed
+      propValve.maintainBreath();
+
       if (timeElapsed(tCycleTimer) > tInsp) {
         setState(HOLD_INSP_STATE);
       }
@@ -277,6 +316,16 @@ void volumeControl() {
     case HOLD_INSP_STATE:
       if (enteringState) {
         enteringState = false;
+
+        // close prop valve and open air/oxygen
+        propValve.endBreath();
+        airValve.open();
+
+        // turn on PID control for oxygen 
+        // (input: measured FiO2, output: duration to keep open)
+        // so we have to keep track of an O2 timer
+        // timer since PID was first started, DURATION constant 
+        // do we still compute consistentally? => duration should belong to Oxygen
       }
       if (timeElapsed(tCycleTimer) > tHoldInsp) {
         inspPressureReader.setPlateau();
@@ -287,12 +336,10 @@ void volumeControl() {
     case EXP_STATE:
       if (enteringState) {
         enteringState = false;
-        // close prop valve and open all others
-        propValve.endBreath(tInsp, settings.volume);
         expValve.open();   
-        airValve.open();
-        oxygenValve.open();
       }
+
+      // timer for when this starts to use for tidal volume
 
       // check whether or not to go into PEEP_PAUSE_STATE
       if (timeElapsed(tCycleTimer) > tExp) {
@@ -306,6 +353,7 @@ void volumeControl() {
       }
       
       if(timeElapsed(tCycleTimer) > tExp + MIN_PEEP_PAUSE) {
+        // record the peep as the current pressure
         inspPressureReader.peep();
         setState(HOLD_EXP_STATE);
       }
@@ -317,7 +365,7 @@ void volumeControl() {
       }
       
       // Check if patient triggers inhale
-      bool patientTriggered = expPressureReader.get() < expPressureReader.peep();
+      bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
 
       if (patientTriggered || timeElapsed(tCycleTimer) > tPeriod) {
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
@@ -335,16 +383,16 @@ void setState(States newState) {
 }
 
 void calculateWaveform() {
-  tPeriod = 60.0 / settings.bpm;  // seconds in each breathing cycle period
-  tHoldInsp = tPeriod / (1 + settings.ie);
-  tInsp = tHoldInsp - HOLD_IN_DURATION;
-  tExp = min(tHoldInsp + MAX_EX_DURATION, tPeriod - MIN_PEEP_PAUSE);
+  tPeriod = 60.0 / vc_settings.bpm;  // seconds in each breathing cycle period
+  tHoldInsp = tPeriod / (1 + vc_settings.ie); // time to hold inspiration
+  tInsp = tHoldInsp - HOLD_INSP_DURATION; 
+  tExp = min(tHoldInsp + MAX_EXP_DURATION, tPeriod - MIN_PEEP_PAUSE);
 }
 
-unsigned long timeElapsed(unsigned long startTime) {
+unsigned long timeElapsed(unsigned long startTimeSec) {
   // convert ms to sec and calculate duration
-  unsigned long now = millis() * 1e-3;
-  return now - startTime;
+  unsigned long now = millis()/1000;
+  return now - startTimeSec;
 }
 
 void readSensors() { 
@@ -362,13 +410,17 @@ void readSensors() {
 }
 
 void handleErrors() {
+  // add sensor failure alarm
+  // reading should return Nan or something similar.. test
+  // do you get zero volts if sensor is disconnected?
+
   // Pressure alarms
   if (inspPressureReader.get() >= MAX_PRESSURE) {
     alarm.activateAlarm(ALARM_INSP_HIGH);
-    setState(EXP_STATE);
+    setState(EXP_STATE); // start exhaling to relieve pressure?
   }
  
-  if (enteringState && state == INSP_STATE) {
+  if (enteringState && state == HOLD_INSP_STATE) {
     // check bad plateau pressure
     if(inspPressureReader.plateau() > MAX_PLATEAU_PRESSURE) {
       // @TODO: add high plateau alarm   
@@ -376,19 +428,20 @@ void handleErrors() {
     }
 
     // low inspiratory pressure
+    // double check about low inspiratory p alarm
     if(inspPressureReader.plateau() < MIN_PLATEAU_PRESSURE) {
       alarm.activateAlarm(ALARM_INSP_LOW);
     }
   }
 
   // Check if desired volume was reached
-  if (enteringState && state == EXP_STATE) {
+  else if (enteringState && state == EXP_STATE) {
     float flowRate = flowInReader.get();
     float vtActual = flowRate * (timeElapsed(tCycleTimer)); // measured in mL (cc's)
     
-    if (vtActual >= settings.volume + ERROR_VOLUME) {
+    if (vtActual >= vc_settings.volume + ERROR_VOLUME) {
       alarm.activateAlarm(ALARM_TIDAL_HIGH);
-    } else if (vtActual + ERROR_VOLUME <= settings.volume) {
+    } else if (vtActual + ERROR_VOLUME <= vc_settings.volume) {
       alarm.activateAlarm(ALARM_TIDAL_LOW);
     }
   }

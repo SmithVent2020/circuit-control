@@ -24,7 +24,7 @@ public:
     is_normally_open_ ? digitalWrite(valve_pin_, HIGH) : digitalWrite(valve_pin_, LOW);
   }
 
-  const float& get() { return state_; }
+  float get() const { return state_; }
 
 private:
   int valve_pin_;
