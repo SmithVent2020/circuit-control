@@ -97,7 +97,7 @@ ps_settings_t ps_settings;
 
 //--------------Declare Functions--------------
 
-// Helper function that returns milliseconds elapsed since system startup
+// Helper function that returns seconds elapsed since system startup
 inline unsigned long now() { return millis() / 1000; }
 
 // Set the current state in the state machine
