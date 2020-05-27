@@ -13,11 +13,11 @@ Pressure::Pressure(int pin) {
 }
 
 /**
- * Get pressure reading 
- */ 
+ * Get pressure reading
+ */
 void Pressure::read() {
 	// read the voltage
-	int V = analogRead(sensor_pin_); 
+	int V = analogRead(sensor_pin_);
 
 	const float Pmin = -163.155;   // pressure max in mbar
 	const float Pmax = 163.155;    // pressure min in mbar
