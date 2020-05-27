@@ -204,10 +204,10 @@ void beginHoldInspiration() {
   propValve.endBreath();
   airValve.open();
 
-  insHoldTimer = millis();
+  inspHoldTimer = millis();
 
   // Measure inspiration hold only once per button-press
-  vc_settings.holdInspOn = false;
+  vc_settings.inspHoldOn = false;
 }
 
 // Perform these actions when transitioning from inspiration to any of the
@@ -250,7 +250,7 @@ void pressureSupportStateMachine() {
       // still PID, setpoint should be peak constantly
 
       if (inspPressureReader.peak() >= ps_settings.peak) {
-        beginInspSustain();
+        beginInsiratorySustain();
         setState(INSP_SUSTAIN_STATE);
       }
       break;
@@ -346,7 +346,7 @@ void volumeControlStateMachine()
       break;
 
     case HOLD_INSP_STATE:
-      if (HOLD_INSP_DURATION <= millis() - holdInspTimer) {
+      if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
         setState(EXP_STATE);
         beginExpiratoryCycle();
