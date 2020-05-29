@@ -23,7 +23,8 @@
 
 
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
-unsigned long cycleCount = 0;
+unsigned long cycleCount = 0; // number of breaths (including current breath) 
+int inspVolume           = 0; // volume of inhaled air
 
 // Target time parameters (in milliseconds). Calculated, not measured.
 unsigned long targetInspEndTime;      // Desired interval since cycleSecTimer for end of INSP_STATE
@@ -199,7 +200,8 @@ void beginInsiratorySustain() {
 
 void beginHoldInspiration() {
   // Volume control only. Not used for pressure support mode.
-
+  inspVolume = 0; 
+  
   // close prop valve and open air/oxygen
   propValve.endBreath();
   airValve.open();
@@ -320,7 +322,7 @@ void volumeControlStateMachine()
       break;
 
     case INSP_STATE:
-      if (cycleElapsedTime() > targetInspEndTime) {
+      if (inspVolume >= vc_settings.volume || cycleElapsedTime() >= targetInspEndTime) {
         if (vc_settings.inspHoldOn) {
           setState(HOLD_INSP_STATE);
           beginHoldInspiration();
