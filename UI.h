@@ -1,12 +1,15 @@
 // Variables and subroutines to access the User Interface from other parts of
 // the system.
 
+#ifndef UI_h
+#define UI_h
+
 // Volume Control settings type
 // @TODO: update these values from UI inputs
 struct vc_settings_t {
   int   volume;          // Tidal volume
   int   bpm;             // Respiratory rate
-  float ie;              // Inhale/exhale ratio
+  int   ie;              // Inhale/exhale ratio (%inhalation)
   float peak;            // peak pressure (PiP)
   int   o2concentration; // O2 concentration (0% to 100%)
   float sensitivity;     // pressure sensitivity
@@ -33,3 +36,5 @@ extern ps_settings_t ps_settings;
 
 // UI will turn this true when the ON button is pressed
 extern bool OnButtonPressed;
+
+#endif // UI_h

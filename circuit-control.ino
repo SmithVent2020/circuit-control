@@ -24,27 +24,29 @@
 
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
 unsigned long cycleCount = 0; // number of breaths (including current breath)
-int inspVolume           = 0; // volume of inhaled air
+
+float targetExpVolume    = 0; // minimum target volume for expiration
 
 // Target time parameters (in milliseconds). Calculated, not measured.
-unsigned long targetInspEndTime;      // Desired interval since cycleSecTimer for end of INSP_STATE
-unsigned long targetExpEndTime;       // Desired interval since cycleSecTimer for end of EXP_STATE
 unsigned long targetCycleEndTime;     // Desired interval since cycleSecTimer for end of cycle
+unsigned long targetInspEndTime;      // Desired interval since cycleSecTimer for end of INSP_STATE
+unsigned long targetExpInterval;      // Desired length of EXP_STATE (VC mode only)
+unsigned long targetExpEndTime;       // Desired interval since cycleSecTimer for end of EXP_STATE (VC mode only)
 
 // Timers (i.e., start times, in milliseconds):
 unsigned long cycleTimer;        // Start time of start of current breathing cycle
-unsigned long inspStartTimer;    // Start time of inspiration state
-unsigned long inspHoldTimer;     // Start time of inpsiratory state
+unsigned long inspHoldTimer;     // Start time of inpsiratory hold state
 unsigned long expStartTimer;     // Start time of expiration cycle (including exp hold & peep pause)
+unsigned long peepPauseTimer;    // Start time of peep pause
 
 // Timer results (intervals, in milliseconds):
+unsigned long cycleElapsedTime;  // Elapsed time (in ms) since start of this cycle
 unsigned long cycleInterval;     // Milliseconds elapsed since cycleTimer at end of cycle (for logging)
-unsigned long inspInterval;      // Milliseconds elapsed since inspStartTimer at end of inspiration
 unsigned long expInterval;       // Milliseconds elapsed since expStartTimer at end of expiration
 
 // Flags
-bool DEBUG;
-bool ventilatorOn;
+bool DEBUG = false;
+bool ventilatorOn = false;
 VentMode ventMode = VC_MODE;
 
 // @TODO: Implement Display class
@@ -70,11 +72,6 @@ void pressureSupportStateMachine();
 // VC algorithm
 void volumeControlStateMachine();
 
-// Elapsed time (in ms) since start of this cycle
-inline unsigned long cycleElapsedTime() {
-  return millis() - cycleTimer;
-}
-
 //-------------------Set Up--------------------
 void setup() {
   Serial.begin(9600);   // open serial port for debugging
@@ -93,8 +90,8 @@ void setup() {
   pinMode(PRESSURE_INSP, INPUT);
   pinMode(PRESSURE_EXP, INPUT);
   pinMode(O2_SENSOR, INPUT);
-  pinMode(FLOW_IN, INPUT);
-  pinMode(FLOW_OUT, INPUT);
+  pinMode(FLOW_INSP, INPUT);
+  pinMode(FLOW_EXP, INPUT);
 
   // @TODO: implement startup sequence on display
   // display.begin();
@@ -116,6 +113,8 @@ void loop() {
   // if (display.turnedOff()) {
   //   setState(OFF_STATE);
   // }
+
+  cycleElapsedTime = millis() - cycleTimer;
 
   if (ventMode == PS_MODE) {
     // Run pressure support mode
@@ -156,19 +155,32 @@ void beginOff() {
 }
 
 void beginInspiration() {
-  cycleInterval = cycleElapsedTime();
-  cycleTimer = millis();;  // the cycle begins at the start of inspiration
+  cycleInterval = cycleElapsedTime;
+  cycleTimer = millis();  // the cycle begins at the start of inspiration
 
   // End expiratory cycle timer and start the inpiration timer
-  expInterval = millis() - expStartTimer;
-  inspStartTimer = millis();
+  expInterval    = cycleTimer - expStartTimer;
 
   // close expiratory valve
   expValve.close();
 
+  // Compute intervals at current settings
+  if (ventMode == PS_MODE) {
+    targetCycleEndTime = 60000UL / ps_settings.bpm; // ms from start of cycle to end of inspiration
+    targetInspEndTime  = targetCycleEndTime / 2;    // @TODO: How should this be set?
+  }
+  else {
+    targetCycleEndTime = 60000UL / vc_settings.bpm; // ms from start of cycle to end of inspiration
+    targetInspEndTime  = targetCycleEndTime * vc_settings.ie / 100;
+    targetExpInterval  = targetCycleEndTime - targetInspEndTime - MIN_PEEP_PAUSE;
+  }
+
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
   inspValve.beginBreath(targetInspEndTime, vc_settings.volume);
+
+  // Start computing inspiration volume
+  inspFlowReader.resetVolume();
 
   // turn on PID for inspiratory valve (input = pressure, setpoint = 0)
   cycleCount++;
@@ -176,16 +188,14 @@ void beginInspiration() {
 
 void beginInsiratorySustain() {
   // Pressure has reached set point. Record peak flow.
-  flowInReader.setPeakAndReset();
+  inspFlowReader.setPeakAndReset();
 }
 
 void beginHoldInspiration() {
   // Volume control only. Not used for pressure support mode.
-  inspVolume = 0;
 
   // close prop valve and open air/oxygen
   inspValve.endBreath();
-  airValve.open();
 
   inspHoldTimer = millis();
 
@@ -197,8 +207,10 @@ void beginHoldInspiration() {
 // states in the expiratory cycle (EXP_STATE, HOLD_EXP_STATE, or PEEP_PAUSE).
 void beginExpiratoryCycle() {
   // End inspiration timer and start the epiratory cycle timer
-  inspInterval = millis() - inspStartTimer;
   expStartTimer = millis();
+  targetExpEndTime = expStartTimer + targetExpInterval;
+  expFlowReader.resetVolume();
+  targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
 }
 
 void beginExpiration() {
@@ -208,7 +220,7 @@ void beginExpiration() {
 }
 
 void beginPeepPause() {
-  // Nothing to do when entering peep pause state
+  peepPauseTimer = millis();
 }
 
 void beginHoldExpiration() {
@@ -226,7 +238,9 @@ void pressureSupportStateMachine() {
       break;
 
     case INSP_STATE:
-      // compute PID based on linear pressure function
+      inspFlowReader.updateVolume();
+
+      // @TODO compute PID based on linear pressure function
 
       // check if we reached peak pressure
       // still PID, setpoint should be peak constantly
@@ -238,7 +252,8 @@ void pressureSupportStateMachine() {
       break;
 
     case INSP_SUSTAIN_STATE:
-      if (flowInReader.get() < (CYCLE_OFF * flowInReader.peak())) {
+      inspFlowReader.updateVolume();
+      if (inspFlowReader.get() < (CYCLE_OFF * inspFlowReader.peak())) {
         setState(EXP_STATE);
         beginExpiratoryCycle();
         beginExpiration();
@@ -255,14 +270,24 @@ void pressureSupportStateMachine() {
       break;
 
     case EXP_STATE:
-      if (cycleElapsedTime() > targetExpEndTime) {
+      expFlowReader.updateVolume();
+      // Move to peep pause if the expiratory volume is at least at the target volume
+      if (expFlowReader.getVolume() >= targetExpVolume) {
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
+      }
+      else if (cycleElapsedTime > APNEA_BACKUP) {
+        alarmMgr.activateAlarm(ALARM_APNEA);
+        ventMode = VC_MODE;
+        setState(INSP_STATE);
+        beginInspiration();
       }
       break;
 
     case PEEP_PAUSE_STATE:
-      if(cycleElapsedTime() > targetExpEndTime + MIN_PEEP_PAUSE) {
+      // We don't need to keep track of the volume anymore, but we might want to, e.g., to display to user.
+      // expFlowReader.updateVolume();
+      if (millis() - peepPauseTimer >= MIN_PEEP_PAUSE) {
         expPressureReader.setPeep();
         setState(HOLD_EXP_STATE);
         beginHoldExpiration();
@@ -270,6 +295,9 @@ void pressureSupportStateMachine() {
       break;
 
     case HOLD_EXP_STATE:
+      // We don't need to keep track of the volume anymore, but we might want to, e.g., to display to user.
+      // expFlowReader.updateVolume();
+
       // Check if patient triggers inhale
       // using peep here, but may need to use a lower pressure threshold
       if (expPressureReader.get() < expPressureReader.peep()) {
@@ -280,7 +308,7 @@ void pressureSupportStateMachine() {
       }
 
       // Apnea check
-      if (cycleElapsedTime() > APNEA_BACKUP) {
+      if (cycleElapsedTime > APNEA_BACKUP) {
         alarmMgr.activateAlarm(ALARM_APNEA);
         ventMode = VC_MODE;
         setState(INSP_STATE);
@@ -303,7 +331,12 @@ void volumeControlStateMachine()
       break;
 
     case INSP_STATE:
-      if (inspVolume >= vc_settings.volume || cycleElapsedTime() >= targetInspEndTime) {
+      inspFlowReader.updateVolume();
+      if (inspFlowReader.getVolume() >= vc_settings.volume || cycleElapsedTime >= targetInspEndTime) {
+        if (cycleElapsedTime >= targetInspEndTime) {
+          alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
+        }
+
         if (vc_settings.inspHoldOn) {
           setState(HOLD_INSP_STATE);
           beginHoldInspiration();
@@ -337,14 +370,16 @@ void volumeControlStateMachine()
       break;
 
     case EXP_STATE:
-      if (cycleElapsedTime() > targetExpEndTime) {
+      expFlowReader.updateVolume();
+      if (expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) {
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
       break;
 
     case PEEP_PAUSE_STATE:
-      if(cycleElapsedTime() > targetExpEndTime + MIN_PEEP_PAUSE) {
+      expFlowReader.updateVolume();
+      if (millis() - peepPauseTimer >= MIN_PEEP_PAUSE) {
         // record the peep as the current pressure
         inspPressureReader.peep();
         setState(HOLD_EXP_STATE);
@@ -353,12 +388,13 @@ void volumeControlStateMachine()
       break;
 
     case HOLD_EXP_STATE:
+      expFlowReader.updateVolume();
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
 
-      if (patientTriggered || cycleElapsedTime() > targetCycleEndTime) {
+      if (patientTriggered || cycleElapsedTime > targetCycleEndTime) {
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
-        // @TODO: Move the next line into beginExpiration()
+        // @TODO: Move the next line into beginExpiration()  (???)
         inspPressureReader.setPeakAndReset();
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();

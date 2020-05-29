@@ -6,6 +6,8 @@
 #ifndef Constants_h
 #define Constants_h
 
+#include <arduino.h>
+
 // States
 enum States {
   DEBUG_STATE,
@@ -46,8 +48,8 @@ const int SV4_CONTROL = 26; // relay pin that controls SV4 (exp)
 const int SV3_CONTROL = 5;  // proportional valve pin SV3 (insp)
 
 // Flow sensors pins
-const int FLOW_IN  = A0;
-const int FLOW_OUT = A1;
+const int FLOW_INSP = A0;
+const int FLOW_EXP  = A1;
 
 // Pressure sensor pins
 const int PRESSURE_RESERVOIR = A5;
@@ -98,5 +100,17 @@ const float OKP = 1.0;
 const float OKI = 2.0;
 const float OKD = 3.0;
 
+
+// --------------------------
+// Generally-useful Constants
+// --------------------------
+
+// One atmosphere (standard pressure) expressed in cmH2O
+const float ATM_IN_CMH2O = 1033.23;
+
+// Conversion factor: Liters per Min to CCs per Ms.  Note that this is a
+// conversion from actual liters, not a conversion from SLPM, as such a
+// conversion involves pressure.
+const float LPM_TO_CC_PER_MS =  1000.0 / 60000.0;
 
 #endif
