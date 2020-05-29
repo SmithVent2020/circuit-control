@@ -12,7 +12,6 @@ void loop() {
   // put your main code here, to run repeatedly:
   amgr.maintainAlarms();
 
-  // More thorough testing wanted but this is a start...
   switch (test) {
     // Begin with individual alarm tests:
     case 0:  // turn on low tidal alarm at 1 seconds

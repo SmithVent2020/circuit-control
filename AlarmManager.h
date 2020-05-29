@@ -6,73 +6,61 @@
 #include "Constants.h"
 
 // enumerate alarm types
-enum alarmCodes {
-  ALARM_APNEA,         // 0
-  ALARM_POWER_FAIL,    // 1
-  ALARM_INLET_GAS,     // 2
-  ALARM_INLET_O2,      // 3
-  ALARM_BATTERY_LOW,   // 4
-  ALARM_P1SENSOR_FAIL, // 5
-  ALARM_P2SENSOR_FAIL, // 6
-  ALARM_P3SENSOR_FAIL, // 7
-  ALARM_INSP_HIGH,     // 8
-  ALARM_PEEP_HIGH,     // 9
-  ALARM_PEEP_LOW,      // 10
-  ALARM_INSP_LOW,      // 11
-  ALARM_TIDAL_HIGH,    // 12
-  ALARM_TIDAL_LOW,     // 13
-  ALARM_O2SENSOR_FAIL  // 14
+enum alarmCode {
+  ALARM_SHUTDOWN,      // 0 - HIGH
+  ALARM_APNEA,         // 1 - HIGH
+  ALARM_POWER_FAIL,    // 2 - HIGH
+  ALARM_INLET_GAS,     // 3 - HIGH
+  ALARM_INLET_O2,      // 4 - HIGH
+  ALARM_BATTERY_LOW,   // 5 - HIGH
+  ALARM_P1SENSOR_FAIL, // 6 - HIGH
+  ALARM_P2SENSOR_FAIL, // 7 - HIGH
+  ALARM_P3SENSOR_FAIL, // 8 - HIGH
+  ALARM_INSP_HIGH,     // 9 - HIGH
+  ALARM_PEEP_HIGH,     // 10 - MEDIUM
+  ALARM_PEEP_LOW,      // 11 - MEDIUM
+  ALARM_INSP_LOW,      // 12 - MEDIUM
+  ALARM_TIDAL_HIGH,    // 13 - MEDIUM
+  ALARM_TIDAL_LOW,     // 14 - LOW
+  ALARM_O2SENSOR_FAIL, // 15 - LOW
+  N_ALARMS,            // 16
+  NORMAL_STATE         // 17
 };
 
 // enumerate alarm priority
-enum alarmIntensity {
+enum alarmPriority {
   HIGH_PRIORITY, // 0
-  MED_PRIORITY,   // 1
-  LOW_PRIORITY   // 2
+  MED_PRIORITY,  // 1
+  LOW_PRIORITY,  // 2
+  NO_ALARM       // 3
 };
 
-// Number of distinct alarm categories
-const int N_ALARMS = 15;
-
-// 2D array to keep track of alarms and their priority
-const int ALARM_PRIORITY[N_ALARMS][2] = {
-  {1, HIGH_PRIORITY},  // Apnea
-  {2, HIGH_PRIORITY},  // Power supply fail
-  {3, HIGH_PRIORITY},  // Inlet gas fail
-  {3, HIGH_PRIORITY},  // Inlet O2 fail
-  {4, HIGH_PRIORITY},  // Battery low
-  {5, HIGH_PRIORITY},  // Pressure sensor fail
-  {5, HIGH_PRIORITY},  // Pressure sensor fail
-  {5, HIGH_PRIORITY},  // Pressure sensor fail
-  {6, HIGH_PRIORITY},  // Insp pressure high
-  {6, MED_PRIORITY},   // PEEP high
-  {6, MED_PRIORITY},   // PEEP low
-  {7, MED_PRIORITY},   // Insp pressure low
-  {8, LOW_PRIORITY},   // Tidal volume high
-  {8, LOW_PRIORITY},   // Tidal volume low
-  {9, LOW_PRIORITY}    // O2 sensor fail
+enum alarmGroups {
+  ALARM_MAX_HIGH_PRIORITY = ALARM_INSP_HIGH,
+  ALARM_MAX_MED_PRIORITY = ALARM_TIDAL_HIGH,
+  ALARM_MAX_LOW_PRIORITY = ALARM_O2SENSOR_FAIL
 };
 
 class AlarmManager {
   public:
     AlarmManager();                         // constructor
-    void activateAlarm(int code);           // activates alarm with specified code
-    void deactivateAlarm(int code);         // deactivates alarm with specified code
-    bool alarmStatus(int code);             // returns true if specified alarm is on (even if silenced)
+    void activateAlarm(alarmCode code);     // activates alarm with specified code
+    void deactivateAlarm(alarmCode code);   // deactivates alarm with specified code
+    bool alarmStatus(alarmCode code);       // returns true if specified alarm is on (even if silenced)
     void silence(unsigned int duration);    // silences current alarms for specified time (e.g. 2 minutes)
     bool isSilenced();                      // is an alarm currently active but not audible?
-    int topAlarm();                         // returns code of current highest priority active alarm
+    alarmCode topAlarm();                   // returns code of current highest priority active alarm
     void maintainAlarms();                  // call every cycle to perform alarm maintenance & update
+    alarmPriority getAlarmPriority(alarmCode code);  // returns the priority of the alarm
 
   private:  
-    bool onPriority(alarmIntensity level);  // determines whether an alarm of specified priority is on
-    void quellAlarm(int code);              // cease LED display and tone for this alarm
+    bool onPriority(alarmPriority level);  // determines whether an alarm of specified priority is on
+    void quellAlarm(alarmCode code);        // cease LED display and tone for this alarm
     void beginAlarm();                      // sets up the variables for alarm production
-    bool geqPriority(int code1, int code2);  // determines if code1 is >= than code2
     bool timeIsNow(unsigned long t, unsigned long target);  // checks whether time has arrived
 
     // alarms initialized as 'OFF'
-    bool alarms[N_ALARMS];// = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+    bool alarms[N_ALARMS];// = {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
     
     // is there a currently sounding alarm?
     // may be false if no alarms set or if temporarily silenced

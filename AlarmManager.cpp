@@ -12,14 +12,32 @@ AlarmManager::AlarmManager() {
 }
 
 /*
- * Returns code (index) of highest priority alarm currently active
- * or -1 if no alarm is currently set
+ *  Returns the priority associated with the given alarm code
+ * 
+ *  @param code:  alarm we want the priority of
+ *  @returns: the alarms priority (high, medium, low)
  */
- int AlarmManager::topAlarm() {
-   int result = -1;
+alarmPriority AlarmManager::getAlarmPriority(alarmCode code) {
+  if (code <= ALARM_MAX_HIGH_PRIORITY) {
+    return HIGH_PRIORITY;
+  } else if (code <= ALARM_MAX_MED_PRIORITY) {
+    return MED_PRIORITY;
+  } else if (code <= ALARM_MAX_LOW_PRIORITY) {
+    return LOW_PRIORITY;
+  } else {
+    return NO_ALARM;
+  }
+}
+
+/*
+ * Returns code (index) of highest priority alarm currently active
+ * or NORMAL_STATE if no alarm is currently set
+ */
+ alarmCode AlarmManager::topAlarm() {
+   alarmCode result = NORMAL_STATE;
    for (int i = 0; i < N_ALARMS; i++) {
      if (alarms[i] == true) {
-       result = i;
+       result = (alarmCode)i;
        break; 
      }
    }
@@ -29,19 +47,14 @@ AlarmManager::AlarmManager() {
 /*
  * Returns true if any alarm are set at given level, false otherwise
  */
- bool AlarmManager::onPriority(alarmIntensity level) {
+ bool AlarmManager::onPriority(alarmPriority level) {
    for (int i = 0; i < N_ALARMS; i++) {
-     if ((alarms[i])&&(ALARM_PRIORITY[i][1]==level)) {
+     if ((alarms[i])&&(getAlarmPriority(i)==level)) {
        return true;
      }
    }
    return false;
  }
-     
-bool AlarmManager::geqPriority(int code1, int code2) {
-  // highest priority alarms have lowest numbers
-    return (ALARM_PRIORITY[code1][1] <= ALARM_PRIORITY[code2][1]);
-}
 
 /*
  * Makes specified alarm active
@@ -53,10 +66,10 @@ bool AlarmManager::geqPriority(int code1, int code2) {
  * 
  * @params code -- alarm index
  */
-void AlarmManager::activateAlarm(int code) {
+void AlarmManager::activateAlarm(alarmCode code) {
   if ((code>=0)&&(code<N_ALARMS)) {
     alarms[code] = true;
-    int top = topAlarm();
+    alarmCode top = topAlarm();
     alarmLED = true;
     if (top == code) {
       alarmSounding = true;
@@ -77,16 +90,16 @@ void AlarmManager::activateAlarm(int code) {
  * 
  * @params code -- alarm index
  */
-void AlarmManager::deactivateAlarm(int code) {
+void AlarmManager::deactivateAlarm(alarmCode code) {
   if (alarmStatus(code) == true) {
     alarms[code] = false;
-    int top = topAlarm();  // check for new top alarm
-    if (top == -1) {
+    alarmCode top = topAlarm();  // check for new top alarm
+    if (top == NORMAL_STATE) {
       // no alarms remain
       quellAlarm(code);  // cease LED display and tone for deactivated alarm
       alarmSounding = alarmLED = false;
       alarmRearm = 0xffffffff;
-    } else if (geqPriority(top,code)) { 
+    } else if (top > code) {   // recall that lowest code is highest priority!
       // lower priority alarm remains
       quellAlarm(code);  // cease LED display and tone for deactivated alarm
       beginAlarm();
@@ -100,7 +113,7 @@ void AlarmManager::deactivateAlarm(int code) {
  * 
  * @params code -- alarm index
  */
-bool AlarmManager::alarmStatus(int code) {
+bool AlarmManager::alarmStatus(alarmCode code) {
   return  (code>=0)&&(code<N_ALARMS)&&alarms[code];
 }
 
@@ -141,12 +154,12 @@ void AlarmManager::beginAlarm() {
  * 
  * @params code -- alarm index
  */
-void AlarmManager::quellAlarm(int code) {
+void AlarmManager::quellAlarm(alarmCode code) {
   // stop sound
   noTone(BUZZER);
 
   // stop LED
-  switch (ALARM_PRIORITY[code][1]) {
+  switch (getAlarmPriority(code)) {
     case HIGH_PRIORITY:
       digitalWrite(RED_LED, LOW);              
       break;
@@ -154,6 +167,7 @@ void AlarmManager::quellAlarm(int code) {
       digitalWrite(YELLOW_LED, LOW);              
       break;
     case LOW_PRIORITY:
+      digitalWrite(YELLOW_LED, LOW);              
       break;
   }
 
@@ -192,29 +206,42 @@ void AlarmManager::maintainAlarms() {
     if (top > -1) {
       // audible alarms (current highest only):
       if (timeIsNow(t,alarmNextTone)) {
-        switch (ALARM_PRIORITY[top][1]) {
+        switch (getAlarmPriority(top)) {
           case HIGH_PRIORITY:
-            // pattern is beep beep beep rest beep beep rest rest rest rest
-            // each segment is 250 ms; beeps last for 150 ms at 880 Hz (A5)
-            if (alarmPhase <= 2) {  // three beeps
-              tone(BUZZER,880,150);
-              alarmPhase += 1;
-              alarmNextTone = t+250;
-            } else if (alarmPhase == 3) {  // rest
-              alarmPhase += 1;
-              alarmNextTone = t+250;
-            } else if (alarmPhase == 4) {  // first of beep pair
-              tone(BUZZER,880,150);
-              alarmPhase += 1;
-              alarmNextTone = t+250;
-            } else {  // second of beep pair
-              tone(BUZZER,880,150);
-              alarmPhase = 0;
-              alarmNextTone = t+1250;
+            // pattern is beep beep beep rest beep beep rest rest rest rest x2
+            // each beat is 125 ms; beeps last for 75 ms at 880 Hz (A5)
+            // ten beep pattern is followed by 6000 ms interval
+            switch (alarmPhase) {
+              case 0:
+              case 1:
+              case 3:
+              case 5:
+              case 6:
+              case 8:
+                tone(BUZZER,880,75);
+                alarmPhase += 1;
+                alarmNextTone = t+125;
+              break;
+              case 2:
+              case 7:
+                tone(BUZZER,880,75);
+                alarmPhase += 1;
+                alarmNextTone = t+250;
+              break;
+              case 4:
+                tone(BUZZER,880,75);
+                alarmPhase += 1;
+                alarmNextTone = t+625;
+              break;
+              case 9:
+                tone(BUZZER,880,75);
+                alarmPhase = 0;
+                alarmNextTone = t+6125;
+              break;
             }
             break;
           case MED_PRIORITY:
-            // three beeps followed by four beats of silence
+            // three beeps followed by 12000 ms of silence
             // each segment is 250 ms; beeps last for 150 ms at 660 Hz (E5)
             if (alarmPhase == 0) {
               tone(BUZZER,660,150);
@@ -227,7 +254,7 @@ void AlarmManager::maintainAlarms() {
             } else {
               tone(BUZZER,660,150);
               alarmPhase = 0;
-              alarmNextTone = t+1250;
+              alarmNextTone = t+12250;
             }
             break;
           case LOW_PRIORITY:
@@ -247,19 +274,23 @@ void AlarmManager::maintainAlarms() {
   if (alarmLED == true) {
       // visible alarms (both LED can blink if appropriate)
       if (timeIsNow(t,alarmNextBlink)) {
-        // toggle active LED on/off every 500 ms
+        // high priority blinks red LED at 2 Hz
         if (onPriority(HIGH_PRIORITY)) {
-            digitalWrite(RED_LED, alarmPhaseLED);   
+            digitalWrite(RED_LED, 1-alarmPhaseLED%2);   
         } else {
             digitalWrite(RED_LED, LOW);   
         }
+        // medium priority blinks yellow LED at 0.8 Hz
         if (onPriority(MED_PRIORITY)) {
-            digitalWrite(YELLOW_LED, alarmPhaseLED);   
+            digitalWrite(YELLOW_LED, 1-alarmPhaseLED/5);   
+        } else if (onPriority(LOW_PRIORITY)) {
+            // low priority leaves yellow LED on solid
+            digitalWrite(YELLOW_LED, HIGH);   
         } else {
             digitalWrite(YELLOW_LED, LOW);   
         }
-        alarmPhaseLED = !alarmPhaseLED;     
-        alarmNextBlink = t+500;
+        alarmPhaseLED = (alarmPhaseLED+1)%10;     
+        alarmNextBlink = t+250;
       }
     } else {
       // no alarm detected -- reaching this point is probably a bug
