@@ -127,9 +127,9 @@ void loop() {
   // All States
   // @TODO: alarm maintenance
   // display.fetchValues() // @TODO: fetch new values from display
-  calculateWaveform();
-  readSensors();
-  handleErrors();        // check thresholds against sensor values
+  //calculateWaveform();
+  //readSensors();
+  //handleErrors();        // check thresholds against sensor values
   // display.update();   // @TODO: update display with sensor readings and flow graph
 
   // @TODO: implement OFF button functionality to UI with confirmation
@@ -236,8 +236,7 @@ void pressureSupportStateMachine() {
   switch (state) {
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
-      bool onButton = /* isOnButtonPressed(); */ false;
-      if (onButton) {
+      if (/* onButtonPressed */ true) {
         setState(INSP_STATE);
         beginInspiration();  // close valves, etc.
       }
@@ -314,7 +313,7 @@ void volumeControlStateMachine()
   switch (state) {
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
-      if (OnButtonPressed) {
+      if (/* onButtonPressed */ true) {
         setState(INSP_STATE);
         beginInspiration();  // close valves, etc.
       }
