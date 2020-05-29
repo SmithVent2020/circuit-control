@@ -171,9 +171,11 @@ void beginInspiration() {
   }
   else {
     targetCycleEndTime = 60000UL / vc_settings.bpm; // ms from start of cycle to end of inspiration
-    targetInspEndTime  = targetCycleEndTime * vc_settings.ie / 100;
+    targetInspEndTime  = targetCycleEndTime * vc_settings.inspPercent / 100;
     targetExpInterval  = targetCycleEndTime - targetInspEndTime - MIN_PEEP_PAUSE;
   }
+
+  inspPressureReader.setPeakAndReset();
 
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
@@ -394,8 +396,6 @@ void volumeControlStateMachine()
 
       if (patientTriggered || cycleElapsedTime > targetCycleEndTime) {
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
-        // @TODO: Move the next line into beginExpiration()  (???)
-        inspPressureReader.setPeakAndReset();
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
         setState(INSP_STATE);

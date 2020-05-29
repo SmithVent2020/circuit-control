@@ -9,7 +9,7 @@
 struct vc_settings_t {
   int   volume;          // Tidal volume
   int   bpm;             // Respiratory rate
-  int   ie;              // Inhale/exhale ratio (%inhalation)
+  int   inspPercent;     // % of breath that is inhalation (ie / (ie + 1))
   float peak;            // peak pressure (PiP)
   int   o2concentration; // O2 concentration (0% to 100%)
   float sensitivity;     // pressure sensitivity
