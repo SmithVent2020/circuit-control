@@ -1,5 +1,5 @@
 #include "ProportionalValve.h"
-#include "PID_v1.h"
+// #include "PID_v1.h"
 
 /**
  * Initializes PID control with constant gains
@@ -11,7 +11,7 @@
 
 /**
  * Set PID gains to tuned kp, ki, and kd values
- */ 
+ */
 void ProportionalValve::setGains(double kp, double ki, double kd) {
   kp_ = kp;
   ki_ = ki;
@@ -20,7 +20,7 @@ void ProportionalValve::setGains(double kp, double ki, double kd) {
 
 /**
  * Moves proportional valve given an increment in mm
- */ 
+ */
 void ProportionalValve::move(float increment) {
   // increment position
   position_ += increment;
@@ -32,16 +32,16 @@ void ProportionalValve::move(float increment) {
   float voltage = (valveRange/orificeSize) * position_ ;
 
   // analogWrite takes a value between 0-255, so does this need to change?
-  analogWrite(valve_pin_, voltage);       
+  analogWrite(valve_pin_, voltage);
 }
 
 /**
  * Trigger inspiration by starting PID control
- */ 
+ */
 void ProportionalValve::beginBreath(float tInsp, float setVT) {
   // set setpoint to desired inspiratory flow rate ()
   float pid_setpoint_ = setVT/tInsp;
-  
+
   // turn on PID to open valves
   controller.SetMode(AUTOMATIC);
 
@@ -51,7 +51,7 @@ void ProportionalValve::beginBreath(float tInsp, float setVT) {
 
 /**
  * Compute PID output and continue moving the valve
- */ 
+ */
 void ProportionalValve::maintainBreath() {
   controller.Compute(); // do a round of inspiratory PID computing
   move(pid_output_);      // move according to the position calculated by the PID controller
@@ -59,10 +59,13 @@ void ProportionalValve::maintainBreath() {
 
 /**
  * Trigger expiration
- */ 
-void ProportionalValve::endBreath() {  
+ */
+void ProportionalValve::endBreath() {
   // turn off insp PID computing
   controller.SetMode(MANUAL);
 
   move(-1 * position()); // close valve by reseting position, should be 0
 }
+
+// Inspiration valve
+ProportionalValve inspValve(SV3_CONTROL);

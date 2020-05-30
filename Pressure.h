@@ -2,7 +2,7 @@
  * Pressure.h
  * Calculates and stores the key pressure values of the breathing cycle.
  */
- 
+
 #ifndef Pressure_h
 #define Pressure_h
 
@@ -38,5 +38,10 @@ private:
   float current_peak_;
   float peak_, plateau_, peep_;
 };
+
+// Known pressure sensors;
+extern Pressure inspPressureReader;
+extern Pressure expPressureReader;
+extern Pressure reservoirPressureReader;
 
 #endif
