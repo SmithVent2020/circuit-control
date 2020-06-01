@@ -44,6 +44,12 @@ unsigned long cycleElapsedTime;  // Elapsed time (in ms) since start of this cyc
 unsigned long cycleInterval;     // Milliseconds elapsed since cycleTimer at end of cycle (for logging)
 unsigned long expInterval;       // Milliseconds elapsed since expStartTimer at end of expiration
 
+//desired inspiratory flowrate
+float desiredInspFlow;
+
+//PID meomory 
+
+
 // Flags
 bool DEBUG = false;
 bool ventilatorOn = false;
@@ -65,6 +71,13 @@ void handleErrors();
 
 // Helper function that gets all sensor readings
 void readSensors();
+
+//function that translates the user inputs into what the program needs
+void processVCSettings(){
+  targetInspEndTime =(60000*vc_settings.ie)/(vc_settings.bpm*(vc_settings.ie +1)); //set target inspiratory time according to set bpm andI:E ratio
+  desiredInspFlow = vc_settings.volume/targetInspEndTime;                    //desired inspiratory flowrate
+  inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
+}
 
 // PS algorithm
 void pressureSupportStateMachine();
@@ -93,6 +106,9 @@ void setup() {
   pinMode(FLOW_INSP, INPUT);
   pinMode(FLOW_EXP, INPUT);
 
+  //setup PID controller
+  inspValve.initializePID(40, 120, 50); //set output max to 40, output min to 120 and sample time to 50
+
   // @TODO: implement startup sequence on display
   // display.begin();
   cycleTimer = millis();
@@ -104,6 +120,7 @@ void loop() {
   // All States
   // @TODO: alarm maintenance
   // display.fetchValues() // @TODO: fetch new values from display
+  
   //calculateWaveform();
   //readSensors();
   //handleErrors();        // check thresholds against sensor values
@@ -118,15 +135,17 @@ void loop() {
 
   if (ventMode == PS_MODE) {
     // Run pressure support mode
-    o2Management(vc_settings.o2concentration);
+    o2Management(ps_settings.o2concentration);
     pressureSupportStateMachine();
   }
   else {
     // Run volume control mode
-    o2Management(ps_settings.o2concentration);
+    o2Management(vc_settings.o2concentration);
+    processVCSettings(); //calculate needed values from VC settings
     volumeControlStateMachine();
   }
 }
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 // STATE MACHINE
@@ -179,7 +198,7 @@ void beginInspiration() {
 
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
-  inspValve.beginBreath(targetInspEndTime, vc_settings.volume);
+  inspValve.beginBreath(desiredInspFlow, cycleTimer);
 
   // Start computing inspiration volume
   inspFlowReader.resetVolume();
@@ -350,7 +369,7 @@ void volumeControlStateMachine()
       }
       else {
         // keep opening valve until targetInspEndTime is elapsed
-        inspValve.maintainBreath();
+        inspValve.maintainBreath(cycleTimer);
         // Stay in INSP_STATE
       }
       break;

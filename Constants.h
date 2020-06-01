@@ -91,14 +91,12 @@ const float SENSITIVITY_PRESSURE = 0.5; // acceptable margin of error in inspira
 // ---------------------
 
 // PID gains for inspiratory valve (to be tuned after testing)
-const float VKP = 2.0;
-const float VKI = 5.0;
-const float VKD = 1.0;
+const float VKP = 0.225; //proportional constant
+const float VKI = 1.08;  //integral constant
+const float VKD = 0;     //derivative constant
 
-// PID gains for oxygen valve (to be tuned)
-const float OKP = 1.0;
-const float OKI = 2.0;
-const float OKD = 3.0;
+
+
 
 
 // --------------------------
