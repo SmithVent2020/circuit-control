@@ -219,7 +219,7 @@ void beginOff() {
 
   // Close the inspiratory valve
   inspValve.endBreath();
-
+  Serial.print("beginning off mode");
   // keep expiratory valve open?
   expValve.open();
 }
@@ -280,6 +280,7 @@ void beginHoldInspiration() {
 
 // Perform these actions when transitioning from inspiration to any of the
 // states in the expiratory cycle (EXP_STATE, HOLD_EXP_STATE, or PEEP_PAUSE).
+
 void beginExpiratoryCycle() {
   // End inspiration timer and start the epiratory cycle timer
   expStartTimer = millis();
