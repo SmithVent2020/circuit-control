@@ -50,9 +50,6 @@ VentMode ventMode = VC_MODE;
 // @TODO: Implement Display class
 // Display display();
 
-// Alarms
-AlarmManager alarm;
-
 //--------------Declare Functions--------------
 
 // Set the current state in the state machine
@@ -284,7 +281,7 @@ void pressureSupportStateMachine() {
 
       // Apnea check
       if (cycleElapsedTime() > APNEA_BACKUP) {
-        alarm.activateAlarm(ALARM_APNEA);
+        alarmMgr.activateAlarm(ALARM_APNEA);
         ventMode = VC_MODE;
         setState(INSP_STATE);
         beginInspiration();
