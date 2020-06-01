@@ -145,6 +145,7 @@ void setup() {
   Serial.println("expPressure");
 
   ventMode = VC_MODE; //for testing VC mode only
+  setState(INSP_STATE);
 
   // @TODO: implement startup sequence on display
   // display.begin();
@@ -488,7 +489,7 @@ void volumeControlStateMachine(){
         setState(INSP_STATE);
       }
       break;
-      default:
-        Serial.println("otherwise");
+     default:
+       Serial.println("otherwise");
   } // End switch
 }
