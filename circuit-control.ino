@@ -403,7 +403,7 @@ void volumeControlStateMachine()
   switch (state) {
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
-      Serial.print("in off state");
+      Serial.println("in off state");
       if (onButton == true) {
         setState(INSP_STATE);
         desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
@@ -412,6 +412,7 @@ void volumeControlStateMachine()
       break;
 
     case INSP_STATE:
+      Serial.println("in insp state");
       inspFlowReader.updateVolume();
       if (inspFlowReader.getVolume() >= vc_settings.volume || cycleElapsedTime >= targetInspEndTime) {
         if (cycleElapsedTime >= targetInspEndTime) {
@@ -435,6 +436,7 @@ void volumeControlStateMachine()
       break;
 
     case INSP_SUSTAIN_STATE:
+      Serial.println("in insp sustain state");
       // Should never get here in volume control mode.  In the unlikely event
       // that we find ourselves here, switch immediately to expiration state.
       setState(EXP_STATE);
@@ -442,6 +444,7 @@ void volumeControlStateMachine()
       break;
 
     case HOLD_INSP_STATE:
+      Serial.println("in hold insp state");
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
         setState(EXP_STATE);
@@ -451,6 +454,7 @@ void volumeControlStateMachine()
       break;
 
     case EXP_STATE:
+    Serial.println("in exp state");
       expFlowReader.updateVolume();
       if (expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) {
         setState(PEEP_PAUSE_STATE);
@@ -459,6 +463,7 @@ void volumeControlStateMachine()
       break;
 
     case PEEP_PAUSE_STATE:
+      Serial.println("in PEEP state");
       expFlowReader.updateVolume();
       if (millis() - peepPauseTimer >= MIN_PEEP_PAUSE) {
         // record the peep as the current pressure
@@ -469,6 +474,7 @@ void volumeControlStateMachine()
       break;
 
     case HOLD_EXP_STATE:
+      Serial.println("in exp Hold state");
       expFlowReader.updateVolume();
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
@@ -480,5 +486,7 @@ void volumeControlStateMachine()
         setState(INSP_STATE);
       }
       break;
+      default:
+        Serial.println("otherwise");
   } // End switch
 }
