@@ -44,8 +44,10 @@ unsigned long cycleElapsedTime;  // Elapsed time (in ms) since start of this cyc
 unsigned long cycleInterval;     // Milliseconds elapsed since cycleTimer at end of cycle (for logging)
 unsigned long expInterval;       // Milliseconds elapsed since expStartTimer at end of expiration
 
+
 //desired inspiratory flowrate
 float desiredInspFlow;
+bool onButton = true;
 
 //PID meomory 
 
@@ -92,7 +94,7 @@ void volumeControlStateMachine();
 
 
 void displaySensors(){ //for @debugging and testing purposes
-  Serial.print(millis);
+  Serial.print(millis());
   Serial.print("\t");
   Serial.print(inspFlowReader.get());
   Serial.print("\t");
@@ -400,7 +402,7 @@ void volumeControlStateMachine()
   switch (state) {
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
-      if (/* onButtonPressed */ true) {
+      if (onButton == true) {
         setState(INSP_STATE);
         desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
         beginInspiration();  // close valves, etc.
