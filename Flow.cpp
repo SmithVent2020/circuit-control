@@ -28,6 +28,31 @@ void Flow::read() {
   float flow_rate_ = Vsupply * V/Vmax * Fmax/sensorRange - 18.75;
 }
 
+/**
+ * Start/restart volume integration.
+ */
+void Flow::resetVolume() {
+  last_timepoint_ = millis();
+  accum_volume_ = 0;
+}
+
+/**
+ * Add the flow during the recent time interval to the accumulated value.
+ */
+void Flow::updateVolume() {
+  unsigned long new_timepoint = millis();
+  unsigned long interval = new_timepoint - last_timepoint_;
+
+  // Convert flow from L/min to ml/ms.
+  float flow = get() * LPM_TO_CC_PER_MS;
+
+  // Multiply flow by time and add to accumulated volume.
+  // Theoretically, we could get slightly better accuracy by choosing the midpoint between
+  // the previous flow and the current flow, but that is unlikely to make much difference.
+  accum_volume_ += flow * interval;
+  last_timepoint_ = new_timepoint;
+}
+
 // Flow sensors
-Flow flowInReader(FLOW_IN);
-Flow flowOutReader(FLOW_OUT);
+Flow inspFlowReader(FLOW_INSP);
+Flow expFlowReader(FLOW_EXP);

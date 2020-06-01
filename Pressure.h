@@ -27,6 +27,7 @@ public:
     peep_ = get();
   }
 
+  // All pressures are in cmH2O
   float get() const { return current_; }
   float peak() const { return peak_; }
   float plateau() const { return plateau_; }

@@ -7,7 +7,7 @@
 vc_settings_t vc_settings = {
   /* int   volume          = */ 500,   // Tidal volume
   /* int   bpm             = */ 35,    // Respiratory rate
-  /* float ie              = */ 0.5,   // Inhale/exhale ratio
+  /* int   inspPercent;    = */ 50,    // % of breath that is inhalation (ie / (ie + 1))
   /* float peak            = */ 35,    // peak pressure (PiP)
   /* int   o2concentration = */ 100,   // O2 concentration, in percent
   /* float sensitivity     = */ 3,     // pressure sensitivity
