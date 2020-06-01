@@ -8,14 +8,14 @@ void Oxygen::read() {
   analogReference(INTERNAL1V1);
   analogRead(sensor_pin_);
 
-  int V = analogRead(sensor_pin_); // map linearly to concentration
+  unsigned R = analogRead(sensor_pin_); // map linearly to concentration
 
-  const float O2Max = 100;    // max oxygen percentage
-  const float Vmax = 1023;    // max voltage in range from analogRead
-  const float Vsupply = 1.1;  // supplied voltage
-  const float sensorRange = (60 * 1000); // voltage range (0-60 mV) returned from sensor in V
+  const unsigned O2Max = 100;                      // max oxygen percentage
+  const unsigned Vref = 1100;                      // reference voltage (mv)
+  const unsigned sensorVMax = 60;                  // voltage range (0-60 mV) returned from sensor
+  const unsigned Rmax = 1023U * sensorVMax / Vref; // Max sensor reading (corresponding to 60mv)
 
-  float concentration_ = Vsupply * V/Vmax * O2Max/sensorRange;
+  concentration_ = R * O2Max / Rmax;  // Concentration in percent
 
   // change analog pin reference voltage back to 5.0 V and discard first reading again
   analogReference(DEFAULT);

@@ -12,12 +12,12 @@
 class Oxygen {
   public:
     Oxygen(int pin) : sensor_pin_(pin) { }
-    float get() const { return concentration_; }
+    int get() const { return concentration_; }
     void read();
 
   private:
     int sensor_pin_;
-    float concentration_;
+    int concentration_;
 };
 
 // The oxygen reader
