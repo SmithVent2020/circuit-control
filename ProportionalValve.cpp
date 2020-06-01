@@ -83,7 +83,7 @@ void ProportionalValve::initializePID(double outputMin, double outputMax, int sa
 }
 
 float ProportionalValve::integrateReadings(){
-  PIDMemory[(active_memory_+used_memory_)%memory_length_] = flowInReader.get(); //get most recent flow reading in insp line
+  PIDMemory[(active_memory_+used_memory_)%memory_length_] = inspFlowReader.get(); //get most recent flow reading in insp line
   //Serial.print("Measurement: ");
   //Serial.println(PIDMemory[(active_memory_+used_memory_)%memory_length_]);
   if (used_memory_ == memory_length_) {
