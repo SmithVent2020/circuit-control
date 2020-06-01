@@ -105,7 +105,7 @@ void displaySensors(){ //for @debugging and testing purposes
 //-------------------Set Up--------------------
 void setup() {
   delay(10000); //allow 10 seconds for the tester to get they system ready @debugging
-  Serial.begin(9600);   // open serial port for @debugging
+  Serial.begin(115200);   // open serial port for @debugging
 
   // initialize pins with pinMode command
   pinMode(SV1_CONTROL, OUTPUT);
