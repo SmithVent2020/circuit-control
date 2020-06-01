@@ -83,18 +83,13 @@ void readSensors(){
   
 }
 
-//function that translates the user inputs into what the program needs
-void processVCSettings(){
-  //targetInspEndTime =(60000*vc_settings.ie)/(vc_settings.bpm*(vc_settings.ie +1)); //set target inspiratory time according to set bpm andI:E ratio
-  desiredInspFlow = vc_settings.volume/targetInspEndTime;                    //desired inspiratory flowrate
-  inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
-}
 
 // PS algorithm
 void pressureSupportStateMachine();
 
 // VC algorithm
 void volumeControlStateMachine();
+
 
 void displaySensors(){ //for debugging and testing purposes
   Serial.print(inspFlowReader.get());
@@ -130,6 +125,7 @@ void setup() {
 
   //setup PID controller
   inspValve.initializePID(40, 120, 50); //set output max to 40, output min to 120 and sample time to 50
+  inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
 
   //for debugging purposes, puts a header on the displaySensors readouts
   Serial.print("inspFlow");
@@ -390,6 +386,7 @@ void volumeControlStateMachine()
       // @TODO How do we transition out of the OFF_STATE?
       if (/* onButtonPressed */ true) {
         setState(INSP_STATE);
+        desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
         beginInspiration();  // close valves, etc.
       }
       break;

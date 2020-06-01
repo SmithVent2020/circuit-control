@@ -5,7 +5,7 @@
 #include "UI.h"
 
 vc_settings_t vc_settings = {
-  /* int   volume          = */ 500,   // Tidal volume
+  /* int   volume          = */ 500,   // Tidal volume cc
   /* int   bpm             = */ 35,    // Respiratory rate
   /* int   inspPercent;    = */ 50,    // % of breath that is inhalation (ie / (ie + 1))
   /* float peak            = */ 35,    // peak pressure (PiP)
