@@ -219,7 +219,7 @@ void beginOff() {
 
   // Close the inspiratory valve
   inspValve.endBreath();
-  Serial.print("beginning off mode");
+  
   // keep expiratory valve open?
   expValve.open();
 }
@@ -403,6 +403,7 @@ void volumeControlStateMachine()
   switch (state) {
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
+      Serial.print("in off state");
       if (onButton == true) {
         setState(INSP_STATE);
         desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
