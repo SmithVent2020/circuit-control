@@ -75,7 +75,7 @@ void readSensors(){
   //inspiratory sensors
   inspFlowReader.read();
   inspPressureReader.read();
-  reservoirPressureReader.read();
+  reservoirPressureReader.readReservoir();
   
   //expiratory sensors
   expFlowReader.read();
@@ -164,6 +164,10 @@ void loop() {
   //   setState(OFF_STATE);
   // }
 
+  //manage reservoir refilling
+  o2Management(vc_settings.o2concentration);
+
+  
   cycleElapsedTime = millis() - cycleTimer;
 
   if (ventMode == PS_MODE) {

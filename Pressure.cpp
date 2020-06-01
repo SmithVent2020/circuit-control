@@ -35,6 +35,12 @@ void Pressure::read() {
   current_ = pressure;
 }
 
+void Pressure::readReservoir(){
+  int V = analogRead(sensor_pin_);
+  float pressure = 70.307*100*(5.0*V/1023-0.25)/4.5;  // in cmH20 sensorRead(0.5-4.5 V) maps linearly to flow_read(+-1053.6 cmH2O)
+  current_ = pressure;
+}
+
 // Known pressure sensors
 Pressure inspPressureReader(PRESSURE_INSP);
 Pressure expPressureReader(PRESSURE_EXP);

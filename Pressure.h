@@ -13,6 +13,7 @@ public:
   Pressure(int pin);
 
   void read();
+  void readReservoir();
 
   void setPeakAndReset() {
     peak_ = current_peak_;
