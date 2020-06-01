@@ -400,8 +400,8 @@ void pressureSupportStateMachine() {
   } // End switch
 }
 
-void volumeControlStateMachine()
-{
+void volumeControlStateMachine(){
+  Serial.println(state);
   switch (state) {
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
