@@ -157,7 +157,7 @@ void loop() {
   displaySensors(); //for debugging
   
   //handleErrors();        // check thresholds against sensor values
-  // display.update();   // @TODO: update display with sensor readings and flow graph
+  // display.update();     // @TODO: update display with sensor readings and flow graph
 
   // @TODO: implement OFF button functionality to UI with confirmation
   // if (display.turnedOff()) {
@@ -174,7 +174,6 @@ void loop() {
   else {
     // Run volume control mode
     o2Management(vc_settings.o2concentration);
-    processVCSettings(); //calculate needed values from VC settings
     volumeControlStateMachine();
   }
 }
