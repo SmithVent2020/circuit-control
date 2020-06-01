@@ -92,6 +92,8 @@ void volumeControlStateMachine();
 
 
 void displaySensors(){ //for @debugging and testing purposes
+  Serial.print(millis);
+  Serial.print("\t");
   Serial.print(inspFlowReader.get());
   Serial.print("\t");
   Serial.print(inspPressureReader.get());
@@ -129,6 +131,7 @@ void setup() {
   inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
 
   //for @debugging purposes, puts a header on the displaySensors readouts
+  Serial.print("time stamp");
   Serial.print("inspFlow");
   Serial.print("\t");
   Serial.print("inspPressure");
@@ -176,14 +179,19 @@ void loop() {
   cycleElapsedTime = millis() - cycleTimer;
 
   if (ventMode == PS_MODE) {
+    Serial.println("entering PS mode");
     // Run pressure support mode
     o2Management(ps_settings.o2concentration);
     pressureSupportStateMachine();
   }
-  else {
+  else if (ventMode == VC_MODE) {
+    Serial.println("Entering VC_Mode");
     // Run volume control mode
     o2Management(vc_settings.o2concentration);
     volumeControlStateMachine();
+  }
+  else{
+    Serial.print("no mode entered");
   }
 }
 
