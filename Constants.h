@@ -24,11 +24,6 @@ enum VentMode {
   PS_MODE  // 1
 };
 
-struct ValveInfo {
-  int pin;
-  bool normallyOpen;
-};
-
 // Timing interval settings (all values in milliseconds)
 const unsigned long LOOP_PERIOD = 30;         // The period of the control loop
 const unsigned long HOLD_INSP_DURATION = 500; // Interval to pause after inhalation
@@ -45,9 +40,9 @@ const int YELLOW_LED = 3;
 const int RED_LED    = 4;
 
 // Valves pins
-const ValveInfo SV1_CONTROL = { 22, false }; // relay pin that controls SV1 (air)
-const ValveInfo SV2_CONTROL = { 24, false }; // relay pin that controls SV1 (O2)
-const ValveInfo SV4_CONTROL = { 26, true };  // relay pin that controls SV4 (exp)
+const int SV1_CONTROL = 22; // relay pin that controls SV1 (air)
+const int SV2_CONTROL = 24; // relay pin that controls SV1 (O2)
+const int SV4_CONTROL = 26; // relay pin that controls SV4 (exp)
 const int SV3_CONTROL = 5;  // proportional valve pin SV3 (insp)
 
 // Flow sensors pins

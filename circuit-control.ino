@@ -18,12 +18,12 @@
 #include "Oxygen.h"
 #include "Valve.h"
 #include "ProportionalValve.h"
+#include "O2management.h"
 #include "AlarmManager.h"
 #include "UI.h"
 
-
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
-unsigned long cycleCount = 0; // number of breaths (including current breath) 
+unsigned long cycleCount = 0; // number of breaths (including current breath)
 int inspVolume           = 0; // volume of inhaled air
 
 // Target time parameters (in milliseconds). Calculated, not measured.
@@ -49,24 +49,6 @@ VentMode ventMode = VC_MODE;
 
 // @TODO: Implement Display class
 // Display display();
-
-// Valves
-Valve oxygenValve(SV1_CONTROL);
-Valve airValve(SV2_CONTROL);
-Valve expValve(SV4_CONTROL);
-ProportionalValve propValve;
-
-// Pressure
-Pressure inspPressureReader(PRESSURE_INSP);
-Pressure expPressureReader(PRESSURE_EXP);
-Pressure reservoirPressureReader(PRESSURE_RESERVOIR);
-
-// Flow
-Flow flowInReader(FLOW_IN);
-Flow flowOutReader(FLOW_OUT);
-
-// Oxygen
-Oxygen oxygenReader;
 
 // Alarms
 AlarmManager alarm;
@@ -101,9 +83,9 @@ void setup() {
   Serial.begin(9600);   // open serial port for debugging
 
   // initialize pins with pinMode command
-  pinMode(SV1_CONTROL.pin, OUTPUT);
-  pinMode(SV2_CONTROL.pin, OUTPUT);
-  pinMode(SV4_CONTROL.pin, OUTPUT);
+  pinMode(SV1_CONTROL, OUTPUT);
+  pinMode(SV2_CONTROL, OUTPUT);
+  pinMode(SV4_CONTROL, OUTPUT);
   pinMode(SV3_CONTROL, OUTPUT);
 
   pinMode(YELLOW_LED, OUTPUT);
@@ -140,10 +122,12 @@ void loop() {
 
   if (ventMode == PS_MODE) {
     // Run pressure support mode
+    o2Management(vc_settings.o2concentration);
     pressureSupportStateMachine();
   }
   else {
     // Run volume control mode
+    o2Management(ps_settings.o2concentration);
     volumeControlStateMachine();
   }
 }
@@ -168,7 +152,7 @@ void beginOff() {
   // turn off ongoing alarms after confirmation
 
   // Close the inspiratory valve
-  propValve.endBreath();
+  inspValve.endBreath();
 
   // keep expiratory valve open?
   expValve.open();
@@ -187,7 +171,7 @@ void beginInspiration() {
 
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
-  propValve.beginBreath(targetInspEndTime, vc_settings.volume);
+  inspValve.beginBreath(targetInspEndTime, vc_settings.volume);
 
   // turn on PID for inspiratory valve (input = pressure, setpoint = 0)
   cycleCount++;
@@ -200,10 +184,10 @@ void beginInsiratorySustain() {
 
 void beginHoldInspiration() {
   // Volume control only. Not used for pressure support mode.
-  inspVolume = 0; 
-  
+  inspVolume = 0;
+
   // close prop valve and open air/oxygen
-  propValve.endBreath();
+  inspValve.endBreath();
   airValve.open();
 
   inspHoldTimer = millis();
@@ -221,7 +205,7 @@ void beginExpiratoryCycle() {
 }
 
 void beginExpiration() {
-  propValve.endBreath();
+  inspValve.endBreath();
   expValve.open();
   // @TODO in main loop: turn on PID for oxygen valve (beginBreath)
 }
@@ -334,7 +318,7 @@ void volumeControlStateMachine()
       }
       else {
         // keep opening valve until targetInspEndTime is elapsed
-        propValve.maintainBreath();
+        inspValve.maintainBreath();
         // Stay in INSP_STATE
       }
       break;

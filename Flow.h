@@ -2,7 +2,7 @@
  * Flow.h
  * Calculates and stores the key flow values in the breathing cycle.
  */
- 
+
 #ifndef Flow_h
 #define Flow_h
 
@@ -26,11 +26,14 @@ class Flow {
   private:
     int sensor_pin_;
     float flow_rate_;
-    
+
     // only needed for pressure support
-    float peak_flow_; 
+    float peak_flow_;
     float current_peak_;
 };
 
+// Flow sensors
+extern Flow flowInReader;
+extern Flow flowOutReader;
+
 #endif
- 

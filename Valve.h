@@ -2,7 +2,7 @@
  * Pressure.h
  * Calculates and stores the key pressure values of the breathing cycle.
  */
- 
+
 #ifndef Valve_h
 #define Valve_h
 
@@ -11,12 +11,12 @@
 
 class Valve {
 public:
-  Valve(ValveInfo valveInfo): 
-    valve_pin_(valveInfo.pin),
-    is_normally_open_(valveInfo.normallyOpen),
-    state_(false) {}
+  Valve(int pin, bool normallyOpen)
+    : valve_pin_(pin)
+    , is_normally_open_(normallyOpen)
+    , state_(false) {}
 
-  void open() {  
+  void open() {
     is_normally_open_ ? digitalWrite(valve_pin_, LOW) : digitalWrite(valve_pin_, HIGH);
   }
 
@@ -29,7 +29,12 @@ public:
 private:
   int valve_pin_;
   bool is_normally_open_;
-  bool state_; 
+  bool state_;
 };
+
+// Valves
+extern Valve oxygenValve;
+extern Valve airValve;
+extern Valve expValve;
 
 #endif
