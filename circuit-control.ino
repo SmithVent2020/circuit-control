@@ -190,7 +190,9 @@ void loop() {
     Serial.println("Entering VC_Mode");
     // Run volume control mode
     o2Management(vc_settings.o2concentration);
+    Serial.println("entering VC state machine");
     volumeControlStateMachine();
+    Serial.println("exiting VC state machine");
   }
   else{
     Serial.print("no mode entered");
