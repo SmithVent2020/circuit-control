@@ -91,17 +91,17 @@ void pressureSupportStateMachine();
 void volumeControlStateMachine();
 
 
-void displaySensors(){ //for debugging and testing purposes
-  Serial.print(inspFlowReader.get());
-  Serial.print("\t");
-  Serial.print(inspPressureReader.get());
-  Serial.print("\t");
-  Serial.print(reservoirPressureReader.get());
-  Serial.print("\t");
-  Serial.print(expFlowReader.get());
-  Serial.print("\t");
-  Serial.println(expPressureReader.get());
-}
+//void displaySensors(){ //for debugging and testing purposes
+//  Serial.print(inspFlowReader.get());
+//  Serial.print("\t");
+//  Serial.print(inspPressureReader.get());
+//  Serial.print("\t");
+//  Serial.print(reservoirPressureReader.get());
+//  Serial.print("\t");
+//  Serial.print(expFlowReader.get());
+//  Serial.print("\t");
+//  Serial.println(expPressureReader.get());
+//}
 //-------------------Set Up--------------------
 void setup() {
   Serial.begin(9600);   // open serial port for debugging
@@ -128,15 +128,15 @@ void setup() {
   inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
 
   //for debugging purposes, puts a header on the displaySensors readouts
-  Serial.print("inspFlow");
-  Serial.print("\t");
-  Serial.print("inspPressure");
-  Serial.print("\t");
-  Serial.print("resPressure");
-  Serial.print("\t");
-  Serial.print("expFlow");
-  Serial.print("\t");
-  Serial.println("expPressure");
+//  Serial.print("inspFlow");
+//  Serial.print("\t");
+//  Serial.print("inspPressure");
+//  Serial.print("\t");
+//  Serial.print("resPressure");
+//  Serial.print("\t");
+//  Serial.print("expFlow");
+//  Serial.print("\t");
+//  Serial.println("expPressure");
 
   // @TODO: implement startup sequence on display
   // display.begin();
@@ -154,7 +154,7 @@ void loop() {
 
   //read all the pressure and flow sensors
   readSensors();
-  displaySensors(); //for debugging
+  //displaySensors(); //for debugging
   
   //handleErrors();        // check thresholds against sensor values
   // display.update();     // @TODO: update display with sensor readings and flow graph
@@ -206,7 +206,7 @@ void beginOff() {
 }
 
 void beginInspiration() {
-  Serial.println("entering insp state");
+  //Serial.println("entering insp state"); //uncomment for debugging
   cycleInterval = cycleElapsedTime;
   cycleTimer = millis();  // the cycle begins at the start of inspiration
 
@@ -241,13 +241,13 @@ void beginInspiration() {
 }
 
 void beginInsiratorySustain() {
-  Serial.println("entering insp Sustain state");
+  //Serial.println("entering insp Sustain state"); //uncomment for debugging
   // Pressure has reached set point. Record peak flow.
   inspFlowReader.setPeakAndReset();
 }
 
 void beginHoldInspiration() {
-  Serial.println("entering hold insp state");
+  //Serial.println("entering hold insp state"); //uncomment for debugging
   // Volume control only. Not used for pressure support mode.
 
   // close prop valve and open air/oxygen
@@ -270,20 +270,20 @@ void beginExpiratoryCycle() {
 }
 
 void beginExpiration() {
-  Serial.println("entering exp state");
+  //Serial.println("entering exp state"); //uncomment for debugging
   inspValve.endBreath();
   expValve.open();
   // @TODO in main loop: turn on PID for oxygen valve (beginBreath)
 }
 
 void beginPeepPause() {
-  Serial.println("entering PEEP Pause state");
+  //Serial.println("entering PEEP Pause state"); //uncomment for debugging
   peepPauseTimer = millis();
 }
 
 void beginHoldExpiration() {
   // Nothing to do when entering hold expiration state
-  Serial.println("entering exp hold state");
+  //Serial.println("entering exp hold state"); //uncomment for debugging
 }
 
 void pressureSupportStateMachine() {
