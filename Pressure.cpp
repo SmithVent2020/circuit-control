@@ -32,6 +32,9 @@ void Pressure::read() {
 
   // update peak and reset
   current_peak_ = max(current_peak_, pressure);
+  Serial.print("pressure ="); //@debugging
+  Serial.print("\t");
+  Serial.println(pressure);
   current_ = pressure;
 }
 
