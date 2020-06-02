@@ -439,7 +439,7 @@ void volumeControlStateMachine(){
     case INSP_STATE:
       Serial.println("in insp state");
       inspFlowReader.updateVolume();
-      if (inspFlowReader.getVolume() >= vc_settings.volume || cycleElapsedTime >= targetInspEndTime) {
+      if (cycleElapsedTime >= targetInspEndTime) { //@debugging add the following back: inspFlowReader.getVolume() >= vc_settings.volume ||
         if (cycleElapsedTime >= targetInspEndTime) {
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
@@ -488,7 +488,7 @@ void volumeControlStateMachine(){
     case EXP_STATE:
     Serial.println("in exp state");
       expFlowReader.updateVolume();
-      if (expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) {
+      if (cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume ||
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
@@ -511,7 +511,7 @@ void volumeControlStateMachine(){
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
 
-      if (patientTriggered || cycleElapsedTime > targetCycleEndTime) {
+      if (cycleElapsedTime > targetCycleEndTime) { //@debugging add back: patientTriggered || 
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
