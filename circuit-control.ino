@@ -497,7 +497,7 @@ void volumeControlStateMachine(){
       Serial.print("targetEndExpTime =");
       Serial.print("\t");
       Serial.println(targetExpEndTime);
-      if (expFlowReader.getVolume() >= targetExpVolume || expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: 
+      if (expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: 
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
