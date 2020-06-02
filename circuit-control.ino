@@ -70,7 +70,7 @@ void calculateWaveform();
 
 // Check for errors and take appropriate action
 void handleErrors();
-
+//comment
 // Helper function that gets all sensor readings
 void readSensors(){
   
