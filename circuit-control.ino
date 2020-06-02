@@ -313,7 +313,7 @@ void beginExpiration() {
   Serial.println("entering exp state"); //uncomment for @debugging
   inspValve.endBreath();
   expValve.open();
-  Serial.println("opened expValve"); @debugging
+  Serial.println("opened expValve"); //@debugging
   // @TODO in main loop: turn on PID for oxygen valve (beginBreath)
 }
 
