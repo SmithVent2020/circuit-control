@@ -35,6 +35,8 @@ class Flow {
     // Since maximum inspiration pressure is rarely more than 20 cmH2O over atm, this measurement can be considered a
     // reasonably accurate measurement of actual volume.
     float getVolume() const { return accum_volume_; }
+    
+    
 
   private:
     int   sensor_pin_;
@@ -47,6 +49,7 @@ class Flow {
     // Volume integraton
     unsigned long last_timepoint_; // Time of last call to `resetVolume` or `updateVolume`.
     float         accum_volume_;   // Accumulated volume in cc at one atm
+    
 };
 
 // Flow sensors

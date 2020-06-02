@@ -104,6 +104,10 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print("\t");
   Serial.print(expFlowReader.get());
   Serial.print("\t");
+  Serial.print(inspFlowReader.getVolume());
+  Serial.print("\t");
+  Serial.print(expFlowReader.getVolume());
+  Serial.print("\t");
   Serial.println(expPressureReader.get());
 }
 //-------------------Set Up--------------------
@@ -141,6 +145,10 @@ void setup() {
   Serial.print("resPressure");
   Serial.print("\t");
   Serial.print("expFlow");
+  Serial.print("\t");
+  Serial.print("insp volume");
+  Serial.print("\t");
+  Serial.print("exp volume");
   Serial.print("\t");
   Serial.println("expPressure");
 
@@ -218,6 +226,7 @@ void setState(States newState) {
 }
 
 void beginOff() {
+ 
   // @TODO: implement a turnOffAll method in AlarmManager class to be used here
   // turn off ongoing alarms after confirmation
 
