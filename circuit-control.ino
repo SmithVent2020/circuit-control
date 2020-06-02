@@ -273,7 +273,7 @@ void beginHoldInspiration() {
   Serial.println("entering hold insp state"); //uncomment for @debugging
   // Volume control only. Not used for pressure support mode.
 
-  // close prop valve and open air/oxygen
+  // close prop valve and                     air/oxygen
   inspValve.endBreath();
 
   inspHoldTimer = millis();
@@ -430,6 +430,7 @@ void volumeControlStateMachine(){
         }
         else {
           setState(EXP_STATE);
+          expValve.close();
           Serial.println("calling beginExpiration");
           beginExpiration();
         }
