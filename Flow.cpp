@@ -25,7 +25,7 @@ void Flow::read() {
 
   // convert to flow rate at standard temperature and pressure
   // sensor_read(0.5-4.5 V) maps linearly to flow_rate_(0-150 SLPM) with
-  flow_rate_ =  V * Vsupply * Fmax/sensorRange/Vmax - 18.75;
+  flow_rate_ =  (V * Vsupply * Fmax/sensorRange/Vmax - 18.75); //LPM
 }
 
 /**

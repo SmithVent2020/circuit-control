@@ -112,13 +112,13 @@ void displaySensors(){ //for @debugging and testing purposes
   
   Serial.print(millis());
   Serial.print("\t");
-  Serial.print(inspFlowReader.get());
+  Serial.print(inspFlowReader.get()*LPM_TO_CC_PER_MS);
   Serial.print("\t");
   Serial.print(inspPressureReader.get());
   Serial.print("\t");
   Serial.print(reservoirPressureReader.get());
   Serial.print("\t");
-  Serial.print(expFlowReader.get());
+  Serial.print(expFlowReader.get()*LPM_TO_CC_PER_MS);
   Serial.print("\t");
   Serial.print(inspFlowReader.getVolume());
   Serial.print("\t");
@@ -154,7 +154,7 @@ void setup() {
   
 
   ventMode = VC_MODE; //for testing VC mode only
-  expValve.close(); //close exp valve
+  //expValve.close(); //close exp valve
   digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
   setState(INSP_STATE);
 
@@ -318,7 +318,7 @@ void beginExpiration() {
   //expValve.open();
   digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
   Serial.println("opened expValve"); //@debugging
-  // @TODO in main loop: turn on PID for oxygen valve (beginBreath)
+  
 }
 
 void beginPeepPause() {
@@ -454,6 +454,7 @@ void volumeControlStateMachine(){
           //expValve.close(); //duplicate of beginExpiration 
           //Serial.println("closed expValve");
           Serial.println("calling beginExpiration");
+          beginExpiratoryCycle();
           beginExpiration();
         }
       }
@@ -470,7 +471,7 @@ void volumeControlStateMachine(){
       // Should never get here in volume control mode.  In the unlikely event
       // that we find ourselves here, switch immediately to expiration state.
       setState(EXP_STATE);
-     
+      beginExpiratoryCycle();
       beginExpiration();
       break;
 
