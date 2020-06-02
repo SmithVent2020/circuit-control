@@ -155,6 +155,7 @@ void setup() {
 
   ventMode = VC_MODE; //for testing VC mode only
   expValve.close(); //close exp valve
+  digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
   setState(INSP_STATE);
 
   // @TODO: implement startup sequence on display
@@ -239,7 +240,8 @@ void beginOff() {
   inspValve.endBreath();
   
   // keep expiratory valve open?
-  expValve.open();
+  //expValve.open();
+  digitalWrite(SV4_CONTROL, LOW);  //@debugging to see if SV4 open and close function is working correctly
   Serial.println("opened expValve");
 }
 
@@ -252,7 +254,8 @@ void beginInspiration() {
   expInterval    = cycleTimer - expStartTimer;
 
   // close expiratory valve
-  expValve.close();
+  //expValve.close();
+  digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
   Serial.println("closed expValve");
 
   // Compute intervals at current settings
@@ -312,7 +315,8 @@ void beginExpiratoryCycle() {
 void beginExpiration() {
   Serial.println("entering exp state"); //uncomment for @debugging
   inspValve.endBreath();
-  expValve.open();
+  //expValve.open();
+  digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
   Serial.println("opened expValve"); //@debugging
   // @TODO in main loop: turn on PID for oxygen valve (beginBreath)
 }
