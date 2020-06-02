@@ -18,11 +18,12 @@ void o2Management(int O2target){
       airValve.open();
       oxygenValve.open();
     }
-    else if(O2target =100){
+    else if(O2target == 100){
       oxygenValve.open();
     }
     else{
-      Serial.println("invalid O2 concentration entered");
+      Serial.println("invalid O2 concentration entered -- default to air only");
+      airValve.open();
     }
   }
   else if(reservoirPressureReader.get() >= UPPER_PRESSURE_THRESHOLD){
