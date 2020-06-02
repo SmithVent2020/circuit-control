@@ -11,6 +11,9 @@
  *    digital -- SV1 (air), SV2 (O2), SV3 (reservoir), SV4 (exp)
  */
 
+#define DEBUG_MODE
+#include "debug.h"
+
 //------------------Libraries------------------
 #include "Constants.h"
 #include "Pressure.h"
@@ -195,25 +198,25 @@ void loop() {
   cycleElapsedTime = millis() - cycleTimer;
 
   if (ventMode == PS_MODE) {
-    Serial.println("entering PS mode");
+    debugPrintln("entering PS mode")
     // Run pressure support mode
     o2Management(ps_settings.o2concentration);
     pressureSupportStateMachine();
   }
   else if (ventMode == VC_MODE) {
-    //Serial.println("Entering VC_Mode");
+    //debugPrintln("Entering VC_Mode")
     // Run volume control mode
     
     o2Management(vc_settings.o2concentration);
     
-    //Serial.println("entering VC state machine");
+    //debugPrintln("entering VC state machine")
     
     volumeControlStateMachine();
     
-    //Serial.println("exiting VC state machine");
+    //debugPrintln("exiting VC state machine")
   }
   else{
-    Serial.print("no mode entered");
+    debugPrint("no mode entered")
   }
 }
 
@@ -244,11 +247,11 @@ void beginOff() {
   // keep expiratory valve open?
   //expValve.open();
   digitalWrite(SV4_CONTROL, LOW);  //@debugging to see if SV4 open and close function is working correctly
-  Serial.println("opened expValve");
+  debugPrintln("opened expValve")
 }
 
 void beginInspiration() {
-  Serial.println("entering insp state"); //uncomment for @debugging
+  debugPrintln("entering insp state")  //uncomment for @debugging
   cycleInterval = cycleElapsedTime;
   cycleTimer = millis();  // the cycle begins at the start of inspiration 
 
@@ -258,7 +261,7 @@ void beginInspiration() {
   // close expiratory valve
   //expValve.close();
   digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
-  Serial.println("closed expValve");
+  debugPrintln("closed expValve")
 
   // Compute intervals at current settings
   if (ventMode == PS_MODE) {
@@ -285,13 +288,13 @@ void beginInspiration() {
 }
 
 void beginInsiratorySustain() {
-  Serial.println("entering insp Sustain state"); //uncomment for @debugging
+  debugPrintln("entering insp Sustain state") //uncomment for @debugging
   // Pressure has reached set point. Record peak flow.
   inspFlowReader.setPeakAndReset();
 }
 
 void beginHoldInspiration() {
-  Serial.println("entering hold insp state"); //uncomment for @debugging
+  debugPrintln("entering hold insp state") //uncomment for @debugging
   // Volume control only. Not used for pressure support mode.
 
   // close prop valve and                     air/oxygen
@@ -309,31 +312,31 @@ void beginHoldInspiration() {
 void beginExpiratoryCycle() {
   // End inspiration timer and start the epiratory cycle timer
   expStartTimer = millis();
-  Serial.print("expStartTime =");
-  Serial.print("\t");
-  Serial.print(expStartTimer);
+  debugPrint("expStartTime =")
+  debugPrint("\t")
+  debugPrint(expStartTimer)
   targetExpEndTime = expStartTimer + targetExpInterval;
   expFlowReader.resetVolume();
   targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
 }
 
 void beginExpiration() {
-  Serial.println("entering exp state"); //uncomment for @debugging
+  debugPrintln("entering exp state") //uncomment for @debugging
   inspValve.endBreath();
   //expValve.open();
   digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
-  Serial.println("opened expValve"); //@debugging
+  debugPrintln("opened expValve") //@debugging
   
 }
 
 void beginPeepPause() {
-  Serial.println("entering PEEP Pause state"); //uncomment for @debugging
+  debugPrintln("entering PEEP Pause state") //uncomment for @debugging
   peepPauseTimer = millis();
 }
 
 void beginHoldExpiration() {
   // Nothing to do when entering hold expiration state
-  Serial.println("entering exp hold state"); //uncomment for @debugging
+  debugPrintln("entering exp hold state") //uncomment for @debugging
 }
 
 void pressureSupportStateMachine() {
@@ -429,11 +432,11 @@ void pressureSupportStateMachine() {
 }
 
 void volumeControlStateMachine(){
-  Serial.println(state);
+  debugPrintln(state)
   switch (state) {
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
-      Serial.println("in off state");
+      debugPrintln("in off state")
       //if (onButton == true) { //@debugging put this if statement back in when we have an on button
       setState(INSP_STATE);
       desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
@@ -442,7 +445,7 @@ void volumeControlStateMachine(){
       break;
 
     case INSP_STATE:
-      Serial.println("in insp state");
+      debugPrintln("in insp state")
       inspFlowReader.updateVolume();
       if (inspFlowReader.getVolume() >= vc_settings.volume || cycleElapsedTime >= targetInspEndTime) { //@debugging add the following back: 
         if (cycleElapsedTime >= targetInspEndTime) {
@@ -451,14 +454,14 @@ void volumeControlStateMachine(){
 
         if (vc_settings.inspHoldOn) {
           setState(HOLD_INSP_STATE);
-          Serial.print("calling beginHoldInspiration");
+          debugPrint("calling beginHoldInspiration")
           beginHoldInspiration();
         }
         else {
           setState(EXP_STATE);
           //expValve.close(); //duplicate of beginExpiration 
-          //Serial.println("closed expValve");
-          Serial.println("calling beginExpiration");
+          //debugPrintln("closed expValve");
+          debugPrintln("calling beginExpiration")
           beginExpiratoryCycle();
           
           beginExpiration();
@@ -466,14 +469,14 @@ void volumeControlStateMachine(){
       }
       else {
         // keep opening valve until targetInspEndTime is elapsed
-        Serial.println("maintaining breath");
+        debugPrintln("maintaining breath")
         inspValve.maintainBreath(cycleTimer);
         // Stay in INSP_STATE
       }
       break;
 
     case INSP_SUSTAIN_STATE:
-      Serial.println("in insp sustain state");
+      debugPrintln("in insp sustain state")
       // Should never get here in volume control mode.  In the unlikely event
       // that we find ourselves here, switch immediately to expiration state.
       setState(EXP_STATE);
@@ -482,7 +485,7 @@ void volumeControlStateMachine(){
       break;
 
     case HOLD_INSP_STATE:
-      Serial.println("in hold insp state");
+      debugPrintln("in hold insp state")
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
         setState(EXP_STATE);
@@ -492,11 +495,11 @@ void volumeControlStateMachine(){
       break;
 
     case EXP_STATE:
-      Serial.println("in exp state");
+      debugPrintln("in exp state")
       expFlowReader.updateVolume();
-      Serial.print("targetEndExpTime =");
-      Serial.print("\t");
-      Serial.println(targetExpEndTime);
+      debugPrint("targetEndExpTime =")
+      debugPrint("\t")
+      debugPrintln(targetExpEndTime)
       if (expFlowReader.getVolume() >= targetExpVolume || expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: 
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
@@ -504,7 +507,7 @@ void volumeControlStateMachine(){
       break;
 
     case PEEP_PAUSE_STATE:
-      Serial.println("in PEEP state");
+      debugPrintln("in PEEP state")
       expFlowReader.updateVolume();
       if (millis() - peepPauseTimer >= MIN_PEEP_PAUSE) {
         // record the peep as the current pressure
@@ -515,7 +518,7 @@ void volumeControlStateMachine(){
       break;
 
     case HOLD_EXP_STATE:
-      Serial.println("in exp Hold state");
+      debugPrintln("in exp Hold state")
       expFlowReader.updateVolume();
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
@@ -528,6 +531,6 @@ void volumeControlStateMachine(){
       }
       break;
      default:
-       Serial.println("otherwise");
+       debugPrintln("otherwise")
   } // End switch
 }

@@ -11,18 +11,16 @@ static const float LOWER_PRESSURE_THRESHOLD = 703.07;  //cmH2O (10 psi)
 void o2Management(int O2target){
 
   if(reservoirPressureReader.get()<= LOWER_PRESSURE_THRESHOLD){
-    if(O2target == 21){
-      airValve.open();
-    }
-    else if(O2target == 60){
+    // we always want to open something, even if we can't hit setting exactly
+    if(O2target == 100){
+      // pure oxygen
+      oxygenValve.open();
+    } else if (O2target >= 50){
+      // mix air and oxygen => 60% oxygen
       airValve.open();
       oxygenValve.open();
-    }
-    else if(O2target == 100){
-      oxygenValve.open();
-    }
-    else{
-      Serial.println("invalid O2 concentration entered -- default to air only");
+    } else {
+      // default to air (21% oxygen)
       airValve.open();
     }
   }
