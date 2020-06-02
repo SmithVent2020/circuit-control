@@ -94,6 +94,22 @@ void volumeControlStateMachine();
 
 
 void displaySensors(){ //for @debugging and testing purposes
+  Serial.print("time");
+  Serial.print("\t");
+  Serial.print("IF");
+  Serial.print("\t");
+  Serial.print("IP");
+  Serial.print("\t");
+  Serial.print("RP");
+  Serial.print("\t");
+  Serial.print("EF");
+  Serial.print("\t");
+  Serial.print("IV");
+  Serial.print("\t");
+  Serial.print("EV");
+  Serial.print("\t");
+  Serial.println("EP");
+  
   Serial.print(millis());
   Serial.print("\t");
   Serial.print(inspFlowReader.get());
@@ -135,22 +151,7 @@ void setup() {
   //setup PID controller
   inspValve.initializePID(40, 120, 50); //set output max to 40, output min to 120 and sample time to 50
   inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
-
-  //for @debugging purposes, puts a header on the displaySensors readouts
-  Serial.print("time stamp");
-  Serial.print("inspFlow");
-  Serial.print("\t");
-  Serial.print("inspPressure");
-  Serial.print("\t");
-  Serial.print("resPressure");
-  Serial.print("\t");
-  Serial.print("expFlow");
-  Serial.print("\t");
-  Serial.print("insp volume");
-  Serial.print("\t");
-  Serial.print("exp volume");
-  Serial.print("\t");
-  Serial.println("expPressure");
+  
 
   ventMode = VC_MODE; //for testing VC mode only
   expValve.close(); //close exp valve
@@ -197,12 +198,16 @@ void loop() {
     pressureSupportStateMachine();
   }
   else if (ventMode == VC_MODE) {
-    Serial.println("Entering VC_Mode");
+    //Serial.println("Entering VC_Mode");
     // Run volume control mode
+    
     o2Management(vc_settings.o2concentration);
-    Serial.println("entering VC state machine");
+    
+    //Serial.println("entering VC state machine");
+    
     volumeControlStateMachine();
-    Serial.println("exiting VC state machine");
+    
+    //Serial.println("exiting VC state machine");
   }
   else{
     Serial.print("no mode entered");
@@ -235,6 +240,7 @@ void beginOff() {
   
   // keep expiratory valve open?
   expValve.open();
+  Serial.println("opened expValve");
 }
 
 void beginInspiration() {
@@ -247,6 +253,7 @@ void beginInspiration() {
 
   // close expiratory valve
   expValve.close();
+  Serial.println("closed expValve");
 
   // Compute intervals at current settings
   if (ventMode == PS_MODE) {
@@ -306,6 +313,7 @@ void beginExpiration() {
   Serial.println("entering exp state"); //uncomment for @debugging
   inspValve.endBreath();
   expValve.open();
+  Serial.println("opened expValve"); @debugging
   // @TODO in main loop: turn on PID for oxygen valve (beginBreath)
 }
 
@@ -439,7 +447,8 @@ void volumeControlStateMachine(){
         }
         else {
           setState(EXP_STATE);
-          expValve.close();
+          //expValve.close(); //duplicate of beginExpiration 
+          //Serial.println("closed expValve");
           Serial.println("calling beginExpiration");
           beginExpiration();
         }
