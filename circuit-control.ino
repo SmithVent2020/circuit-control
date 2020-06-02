@@ -253,7 +253,7 @@ void beginInspiration() {
   cycleTimer = millis();  // the cycle begins at the start of inspiration 
 
   // End expiratory cycle timer and start the inpiration timer
-  expInterval    = cycleTimer - expStartTimer; @debugging: Start insp timer here??
+  expInterval    = cycleTimer - expStartTimer; //@debugging: Start insp timer here??
 
   // close expiratory valve
   //expValve.close();
@@ -495,7 +495,7 @@ void volumeControlStateMachine(){
       Serial.println("in exp state");
       expFlowReader.updateVolume();
       Serial.print("targetEndExpTime =");
-      Serial.print("\t")
+      Serial.print("\t");
       Serial.println(targetExpEndTime);
       if (expFlowReader.getVolume() >= targetExpVolume || expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: 
         setState(PEEP_PAUSE_STATE);
