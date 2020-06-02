@@ -454,7 +454,7 @@ void volumeControlStateMachine(){
           //expValve.close(); //duplicate of beginExpiration 
           //Serial.println("closed expValve");
           Serial.println("calling beginExpiration");
-          beginExpiratoryCycle();
+          //beginExpiratoryCycle();
           beginExpiration();
         }
       }
