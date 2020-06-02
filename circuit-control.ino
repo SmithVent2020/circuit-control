@@ -104,7 +104,6 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print("\t");
   Serial.print(expFlowReader.get());
   Serial.print("\t");
-  Serial.print(
   Serial.println(expPressureReader.get());
 }
 //-------------------Set Up--------------------
@@ -146,6 +145,7 @@ void setup() {
   Serial.println("expPressure");
 
   ventMode = VC_MODE; //for testing VC mode only
+  expValve.close(); //close exp valve
   setState(INSP_STATE);
 
   // @TODO: implement startup sequence on display
