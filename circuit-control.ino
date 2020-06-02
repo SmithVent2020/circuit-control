@@ -151,12 +151,14 @@ void setup() {
   //setup PID controller
   inspValve.initializePID(40, 120, 50); //set output max to 40, output min to 120 and sample time to 50
   inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
-  
+
+  //initialize timers:
+  //targetExpInterval = (100-vc_settings.inspPercent)*vc_settings.bpm/200; //begin the targeExpInterval at half what the entire expiratory cycle (exp, PEEP pause, and exp hold) will take
 
   ventMode = VC_MODE; //for testing VC mode only
   //expValve.close(); //close exp valve
   digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
-  setState(INSP_STATE);
+  setState(OFF_STATE);
 
   // @TODO: implement startup sequence on display
   // display.begin();
@@ -248,10 +250,10 @@ void beginOff() {
 void beginInspiration() {
   Serial.println("entering insp state"); //uncomment for @debugging
   cycleInterval = cycleElapsedTime;
-  cycleTimer = millis();  // the cycle begins at the start of inspiration
+  cycleTimer = millis();  // the cycle begins at the start of inspiration 
 
   // End expiratory cycle timer and start the inpiration timer
-  expInterval    = cycleTimer - expStartTimer;
+  expInterval    = cycleTimer - expStartTimer; @debugging: Start insp timer here??
 
   // close expiratory valve
   //expValve.close();
@@ -307,6 +309,9 @@ void beginHoldInspiration() {
 void beginExpiratoryCycle() {
   // End inspiration timer and start the epiratory cycle timer
   expStartTimer = millis();
+  Serial.print("expStartTime =");
+  Serial.print("\t");
+  Serial.print(expStartTimer);
   targetExpEndTime = expStartTimer + targetExpInterval;
   expFlowReader.resetVolume();
   targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
@@ -429,11 +434,11 @@ void volumeControlStateMachine(){
     case OFF_STATE:
       // @TODO How do we transition out of the OFF_STATE?
       Serial.println("in off state");
-      if (onButton == true) {
-        setState(INSP_STATE);
-        desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
-        beginInspiration();  // close valves, etc.
-      }
+      //if (onButton == true) { //@debugging put this if statement back in when we have an on button
+      setState(INSP_STATE);
+      desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
+      beginInspiration();  // close valves, etc.
+      //}
       break;
 
     case INSP_STATE:
@@ -487,9 +492,12 @@ void volumeControlStateMachine(){
       break;
 
     case EXP_STATE:
-    Serial.println("in exp state");
+      Serial.println("in exp state");
       expFlowReader.updateVolume();
-      if (expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume ||
+      Serial.print("targetEndExpTime =");
+      Serial.print("\t")
+      Serial.println(targetExpEndTime);
+      if (expFlowReader.getVolume() >= targetExpVolume || expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: 
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
