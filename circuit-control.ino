@@ -70,7 +70,7 @@ void calculateWaveform();
 
 // Check for errors and take appropriate action
 void handleErrors();
-//comment
+
 // Helper function that gets all sensor readings
 void readSensors(){
   
@@ -439,7 +439,7 @@ void volumeControlStateMachine(){
     case INSP_STATE:
       Serial.println("in insp state");
       inspFlowReader.updateVolume();
-      if (cycleElapsedTime >= targetInspEndTime) { //@debugging add the following back: inspFlowReader.getVolume() >= vc_settings.volume ||
+      if (inspFlowReader.getVolume() >= vc_settings.volume || cycleElapsedTime >= targetInspEndTime) { //@debugging add the following back: 
         if (cycleElapsedTime >= targetInspEndTime) {
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
@@ -454,7 +454,8 @@ void volumeControlStateMachine(){
           //expValve.close(); //duplicate of beginExpiration 
           //Serial.println("closed expValve");
           Serial.println("calling beginExpiration");
-          //beginExpiratoryCycle();
+          beginExpiratoryCycle();
+          
           beginExpiration();
         }
       }
@@ -488,7 +489,7 @@ void volumeControlStateMachine(){
     case EXP_STATE:
     Serial.println("in exp state");
       expFlowReader.updateVolume();
-      if (cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume ||
+      if (expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume ||
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
@@ -511,7 +512,7 @@ void volumeControlStateMachine(){
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
 
-      if (cycleElapsedTime > targetCycleEndTime) { //@debugging add back: patientTriggered || 
+      if (patientTriggered || cycleElapsedTime > targetCycleEndTime) { //@debugging add back:  
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
