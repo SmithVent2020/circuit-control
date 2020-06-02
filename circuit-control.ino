@@ -104,6 +104,7 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print("\t");
   Serial.print(expFlowReader.get());
   Serial.print("\t");
+  Serial.print(
   Serial.println(expPressureReader.get());
 }
 //-------------------Set Up--------------------
@@ -424,15 +425,18 @@ void volumeControlStateMachine(){
 
         if (vc_settings.inspHoldOn) {
           setState(HOLD_INSP_STATE);
+          Serial.print("calling beginHoldInspiration");
           beginHoldInspiration();
         }
         else {
           setState(EXP_STATE);
+          Serial.println("calling beginExpiration");
           beginExpiration();
         }
       }
       else {
         // keep opening valve until targetInspEndTime is elapsed
+        Serial.println("maintaining breath");
         inspValve.maintainBreath(cycleTimer);
         // Stay in INSP_STATE
       }
@@ -443,6 +447,7 @@ void volumeControlStateMachine(){
       // Should never get here in volume control mode.  In the unlikely event
       // that we find ourselves here, switch immediately to expiration state.
       setState(EXP_STATE);
+     
       beginExpiration();
       break;
 
