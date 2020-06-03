@@ -83,7 +83,8 @@ const unsigned long RISE_TIME = 4000;      // max time (ms) it takes to reach Pi
 const float MAX_PRESSURE = 40.0;        // Trigger high pressure alarm
 const float MAX_PLATEAU_PRESSURE = 30;  // Trigger Pplat (cmH2O) alarm
 const float MIN_PLATEAU_PRESSURE = 5.0; // Trigger low insp pressure alarm
-const float SENSITIVITY_PRESSURE = 0.5; // acceptable margin of error in inspiratory pressure (in cmH2O)
+const float SENSITIVITY_PRESSURE = 2; // acceptable margin of error in inspiratory pressure (in cmH2O)
+const float EXP_TIME_SENSITIVITY = 400; //ms the time "wiggle room" we allow for the patient to exhail 80% of air in VC mode 
 
 
 // ---------------------

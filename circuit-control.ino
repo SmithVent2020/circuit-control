@@ -28,10 +28,10 @@ unsigned long cycleCount = 0; // number of breaths (including current breath)
 float targetExpVolume    = 0; // minimum target volume for expiration
 
 // Target time parameters (in milliseconds). Calculated, not measured.
-unsigned long targetCycleEndTime;     // Desired interval since cycleSecTimer for end of cycle
-unsigned long targetInspEndTime;      // Desired interval since cycleSecTimer for end of INSP_STATE
+unsigned long targetCycleEndTime;     // desired time at end of breath (at end of Hold exp state)
+unsigned long targetInspEndTime;      // desired time for end of INSP_STATE
 unsigned long targetExpDuration;      // Desired length of EXP_STATE (VC mode only)
-unsigned long targetExpEndTime;       // Desired interval since cycleSecTimer for end of EXP_STATE (VC mode only)
+unsigned long targetExpEndTime;       // Desired time at end of EXP_STATE (VC mode only)
 
 // Timers (i.e., start times, in milliseconds):
 unsigned long cycleTimer;        // Start time of start of current breathing cycle
@@ -43,6 +43,7 @@ unsigned long peepPauseTimer;    // Start time of peep pause
 unsigned long cycleDuration;     // Measured length of a whole inspiration-expiration cycle
 unsigned long inspDuration;      // Measured length of inspiration (not including inspiratory hold)
 unsigned long expDuration;       // Measured length of expiration (including peep pause and expiratory hold)
+unsigned long targetInspDuration; //desired duration of inspiration
 
 //desired inspiratory flowrate
 float desiredInspFlow;
@@ -74,13 +75,13 @@ void handleErrors();
 void readSensors(){
 
   //inspiratory sensors
-  inspFlowReader.read();
-  inspPressureReader.read();
-  reservoirPressureReader.readReservoir();
+  inspFlowReader.read();  // L/min
+  inspPressureReader.read();  //cmH2O
+  reservoirPressureReader.readReservoir(); //cmH2O
 
   //expiratory sensors
-  expFlowReader.read();
-  expPressureReader.read();
+  expFlowReader.read();  //L/min
+  expPressureReader.read(); //cmH2O
 
 }
 
@@ -111,19 +112,20 @@ void displaySensors(){ //for @debugging and testing purposes
 
   Serial.print(millis());
   Serial.print("\t");
-  Serial.print(inspFlowReader.get()*LPM_TO_CC_PER_MS);
+  Serial.print(inspFlowReader.get());  //L/min
   Serial.print("\t");
-  Serial.print(inspPressureReader.get());
+  Serial.print(inspPressureReader.get()); //cmH2O
   Serial.print("\t");
   Serial.print(reservoirPressureReader.get());
   Serial.print("\t");
-  Serial.print(expFlowReader.get()*LPM_TO_CC_PER_MS);
+  Serial.print(expFlowReader.get());   //L/min
   Serial.print("\t");
-  Serial.print(inspFlowReader.getVolume());
+  Serial.print(inspFlowReader.getVolume());  //cc
   Serial.print("\t");
-  Serial.print(expFlowReader.getVolume());
+  Serial.print(expFlowReader.getVolume());   //cc
   Serial.print("\t");
-  Serial.println(expPressureReader.get());
+  Serial.println(expPressureReader.get()); //cmH2O
+  
 }
 //-------------------Set Up--------------------
 void setup() {
@@ -265,13 +267,13 @@ void beginInspiration() {
   }
   else {
     unsigned long targetCycleDuration = 60000UL / vc_settings.bpm; // ms from start of cycle to end of inspiration
-    unsigned long targetInspDuration = targetCycleDuration * vc_settings.inspPercent / 100;
+    targetInspDuration = targetCycleDuration * vc_settings.inspPercent / 100;
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
-    targetExpDuration  = cycleTimer + targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
+    targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
   }
 
-  inspPressureReader.setPeakAndReset();
+  inspPressureReader.setPeakAndReset(); //cmH2O
 
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
@@ -429,15 +431,17 @@ void volumeControlStateMachine(){
       Serial.println("in off state");
       //if (onButton == true) { //@debugging put this if statement back in when we have an on button
       setState(INSP_STATE);
-      desiredInspFlow = vc_settings.volume/targetInspEndTime; //desired inspiratory flowrate volume/ms
+      desiredInspFlow = vc_settings.volume/targetInspDuration; //desired inspiratory flowrate cc/ms
       beginInspiration();  // close valves, etc.
       //}
       break;
 
     case INSP_STATE: {
-      Serial.println("in insp state");
+      Serial.println("in insp state"); //@debugging
       inspFlowReader.updateVolume();
       bool timeout = (millis() >= targetInspEndTime);
+      Serial.print("targetInspEndTime ="); Serial.print("\t"); Serial.println(targetInspEndTime); //@debugging
+      Serial.print("insp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume()); //@debugging
       if (inspFlowReader.getVolume() >= vc_settings.volume || timeout) { //@debugging add the following back:
         if (timeout) {
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
@@ -474,6 +478,7 @@ void volumeControlStateMachine(){
 
     case HOLD_INSP_STATE:
       Serial.println("in hold insp state");
+      Serial.print("inspHoldTimer"); Serial.print("\t"); Serial.println(millis() - inspHoldTimer); //@debugging
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
         setState(EXP_STATE);
@@ -484,10 +489,9 @@ void volumeControlStateMachine(){
     case EXP_STATE:
       Serial.println("in exp state");
       expFlowReader.updateVolume();
-      Serial.print("targetEndExpTime =");
-      Serial.print("\t");
-      Serial.println(targetExpEndTime);
-      if (expFlowReader.getVolume() >= targetExpVolume || millis() > targetExpEndTime) { //@debugging: add the following back:
+      Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime + EXP_TIME_SENSITIVITY); //@debugging
+      Serial.print("target exp volume"); Serial.print("\t"); Serial.println(targetExpVolume);
+      if (expFlowReader.getVolume() >= targetExpVolume || millis() > targetExpEndTime + EXP_TIME_SENSITIVITY) { //@debugging: add the following back:
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
@@ -496,6 +500,7 @@ void volumeControlStateMachine(){
     case PEEP_PAUSE_STATE:
       Serial.println("in PEEP state");
       expFlowReader.updateVolume();
+      Serial.print("millis - peepPauseTimer"); Serial.print("\t"); Serial.println(millis() - peepPauseTimer); //@debugging
       if (millis() - peepPauseTimer >= MIN_PEEP_PAUSE) {
         // record the peep as the current pressure
         inspPressureReader.peep();
@@ -507,9 +512,14 @@ void volumeControlStateMachine(){
     case HOLD_EXP_STATE: {
       Serial.println("in exp Hold state");
       expFlowReader.updateVolume();
+      
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
-      bool timeout = (millis() - cycleTimer  > targetCycleEndTime);
+      bool timeout = (cycleTimer  > targetCycleEndTime);
+     
+      Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
+      Serial.print(""); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
+      
       if (patientTriggered || timeout) { //@debugging add back:
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
         // @TODO: write PiP, PEEP and Pplat to display

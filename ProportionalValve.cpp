@@ -49,7 +49,7 @@ void ProportionalValve::beginBreath(float desiredSetpoint) {
  * Compute PID output and continue moving the valve
  */
 void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
-  if(cycleTimer < burst_wait_){
+  if(millis() - cycleTimer < burst_wait_){
     //wait for initial burst to settle
     analogWrite(valve_pin_, previousPIDOutput); // move according to previous output
   }

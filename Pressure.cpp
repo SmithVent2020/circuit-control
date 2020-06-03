@@ -31,7 +31,7 @@ void Pressure::read() {
   const unsigned long sensorRange = sensorMax - sensorMin;
 
   // convert to pressure
-  float pressure = (R - sensorMin) * (Prange / sensorRange) + Pmin;
+  float pressure = (R - sensorMin) * (Prange / sensorRange) + Pmin; //cmH2O
 
   // update peak and reset
   current_peak_ = max(current_peak_, pressure);
