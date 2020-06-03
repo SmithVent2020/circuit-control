@@ -26,6 +26,9 @@ void Flow::read() {
   const long sensorRange = sensorMax - sensorMin;
   // Convert analog reading to flow rate at standard temperature and pressure
   flow_rate_ = (R - sensorMin) * (Fmax / sensorRange);
+
+  //set peak
+  current_peak_ = max(current_peak_, flow_rate_);
 }
 
 /**
