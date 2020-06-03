@@ -26,19 +26,19 @@ void ProportionalValve::setGains(double kp, double ki, double kd) {
  */
 void ProportionalValve::move() {
   controller.Compute(); // do a round of inspiratory PID computing
-  analogWrite(valve_pin_, pid_output_);      // move according to the position calculated by the PID controller 
+  analogWrite(valve_pin_, pid_output_);      // move according to the position calculated by the PID controller
 }
 
 /**
  * Trigger inspiration by starting PID control
  */
-void ProportionalValve::beginBreath(float desiredSetpoint, unsigned long cycleTimer) {           
-  
+void ProportionalValve::beginBreath(float desiredSetpoint) {
+
   //implement burst to unstick SV3
   analogWrite(SV3_CONTROL, burst_amplitude_);    //set SV3 all the way open
   delay(burst_time_);                      //wait for 15 milliseconds
   analogWrite(SV3_CONTROL, previousPIDOutput); //open SV3 all to desired opening (calculated based on previous breath's opening)
-  
+
   // set setpoint to desired inspiratory flow rate set tidal volume/ desired inspiratory time
   float pid_setpoint_ = desiredSetpoint;
   controller.Initialize();
@@ -50,7 +50,7 @@ void ProportionalValve::beginBreath(float desiredSetpoint, unsigned long cycleTi
  */
 void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
   if(cycleTimer < burst_wait_){
-    //wait for initial burst to settle           
+    //wait for initial burst to settle
     analogWrite(valve_pin_, previousPIDOutput); // move according to previous output
   }
   else if(controller.GetMode() == MANUAL){
@@ -62,7 +62,7 @@ void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
     //otherwise continue computing and giving output
     move();
   }
-  
+
 }
 
 /**
@@ -70,7 +70,7 @@ void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
  */
 void ProportionalValve::endBreath() {
   previousPIDOutput = pid_output_;  //save successfull position to begin with next loop
-  
+
   // turn off insp PID computing
   controller.SetMode(MANUAL);    //Turn off PID controller
 

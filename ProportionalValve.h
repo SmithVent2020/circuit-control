@@ -16,7 +16,7 @@ class ProportionalValve {
     ProportionalValve(int pin) : valve_pin_(pin) { }
     void move();
     void  setGains(double kp, double ki, double kd);
-    void  beginBreath(float desiredFlow, unsigned long cycleTimer);
+    void  beginBreath(float desiredFlow);
     void  maintainBreath(unsigned long cycleTimer);
     void  endBreath();
     float integrateReadings();
@@ -26,15 +26,15 @@ class ProportionalValve {
 
     float get() const { return position_; }
     float position() const { return position_; }
-    
-    
+
+
 
   private:
     int valve_pin_;
     float position_          = 0.0;
     double pid_setpoint_     = 10.0;  //set the setpoint to a lowish flowrate
-    double pid_input_        = 0.0;   
-    double pid_output_       = 0.0;  
+    double pid_input_        = 0.0;
+    double pid_output_       = 0.0;
     double kp_ = VKP;
     double ki_ = VKI;
     double kd_ = VKD;
@@ -45,8 +45,8 @@ class ProportionalValve {
     static const int burst_wait_      = 100;   //milliseconds
     static const int memory_length_   = 4;     //length of PID output memory
     float PIDMemory[memory_length_];    //create an arrat of length memory_length_
-    
-    
+
+
     PID controller = PID(&pid_input_, &pid_output_, &pid_setpoint_, kp_, ki_, kd_, DIRECT);
     void move(float increment);
 };
