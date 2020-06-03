@@ -312,9 +312,7 @@ void beginHoldInspiration() {
 void beginExpiratoryCycle() {
   // End inspiration timer and start the epiratory cycle timer
   expStartTimer = millis();
-  debugPrint("expStartTime =")
-  debugPrint("\t")
-  debugPrint(expStartTimer)
+  debugPrintVar("expStartTime = ",expStartTimer)
   targetExpEndTime = expStartTimer + targetExpInterval;
   expFlowReader.resetVolume();
   targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
@@ -460,7 +458,6 @@ void volumeControlStateMachine(){
         else {
           setState(EXP_STATE);
           //expValve.close(); //duplicate of beginExpiration 
-          //debugPrintln("closed expValve");
           debugPrintln("calling beginExpiration")
           beginExpiratoryCycle();
           
@@ -497,9 +494,7 @@ void volumeControlStateMachine(){
     case EXP_STATE:
       debugPrintln("in exp state")
       expFlowReader.updateVolume();
-      debugPrint("targetEndExpTime =")
-      debugPrint("\t")
-      debugPrintln(targetExpEndTime)
+      debugPrintVar("targetEndExpTime = ",targetExpEndTime)
       if (expFlowReader.getVolume() >= targetExpVolume || expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: 
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
