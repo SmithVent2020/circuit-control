@@ -306,24 +306,20 @@ void beginHoldInspiration() {
 // Perform these actions when transitioning from inspiration to any of the
 // states in the expiratory cycle (EXP_STATE, HOLD_EXP_STATE, or PEEP_PAUSE).
 
-void beginExpiratoryCycle() {
-  // End inspiration timer and start the epiratory cycle timer
-  expStartTimer = millis();
-  Serial.print("expStartTime =");
-  Serial.print("\t");
-  Serial.print(expStartTimer);
-  targetExpEndTime = expStartTimer + targetExpInterval;
-  expFlowReader.resetVolume();
-  targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
-}
 
 void beginExpiration() {
   Serial.println("entering exp state"); //uncomment for @debugging
   inspValve.endBreath();
-  //expValve.open();
-  digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
+  expValve.open();
+  expStartTimer = millis();             
+  //digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
   Serial.println("opened expValve"); //@debugging
   
+  targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
+  
+  Serial.print("expStartTime ="); Serial.print("\t"); Serial.println(expStartTimer);
+  targetExpEndTime = expStartTimer + targetExpInterval;
+  expFlowReader.resetVolume();
 }
 
 void beginPeepPause() {
@@ -497,7 +493,7 @@ void volumeControlStateMachine(){
       Serial.print("targetEndExpTime =");
       Serial.print("\t");
       Serial.println(targetExpEndTime);
-      if (expFlowReader.getVolume() >= targetExpVolume || cycleElapsedTime > targetExpEndTime) { //@debugging: add the following back: 
+      if (expFlowReader.getVolume() >= targetExpVolume || millis() > targetExpEndTime) { //@debugging: add the following back: 
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
