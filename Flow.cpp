@@ -16,16 +16,17 @@ Flow::Flow(int pin) {
  */
 void Flow::read() {
   // read the voltage
-  int V = analogRead(sensor_pin_);
+  unsigned long R = analogRead(sensor_pin_);
 
-  const float Fmax = 150;     // max flow in SLPM
-  const float Vmax = 1023;    // max voltage in range from analogRead
-  const float Vsupply = 5.0;  // voltage supplied
-  const float sensorRange = (4.5 - 0.5); // voltage range returned by sensor
+  // sensor_read(0.5-4.5 V) maps linearly to flow_rate_ (0-150 SLPM)
+  const float Fmax                = 150;                     // max flow in SLPM. (Min flow is 0)
+  const unsigned long Vsupply     = 5000;                    // voltage supplied, mv
+  const unsigned long sensorMin   = 1023UL * 500 / Vsupply;  // Sensor value at 500 mv
+  const unsigned long sensorMax   = 1023UL * 4500 / Vsupply; // Sensor value at 4500 mv
+  const unsigned long sensorRange = sensorMax - sensorMin;
 
-  // convert to flow rate at standard temperature and pressure
-  // sensor_read(0.5-4.5 V) maps linearly to flow_rate_(0-150 SLPM) with
-  flow_rate_ =  (V * Vsupply * Fmax/sensorRange/Vmax - 18.75); //LPM
+  // Convert analog reading to flow rate at standard temperature and pressure
+  flow_rate_ = (R - sensorMin) * (Fmax / sensorRange);
 }
 
 /**
