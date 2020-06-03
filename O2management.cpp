@@ -15,6 +15,7 @@ void o2Management(int O2target){
       airValve.open();
     }
     else if(O2target == 60){
+      Serial.println("opening air and O2 valves");
       airValve.open();
       oxygenValve.open();
     }

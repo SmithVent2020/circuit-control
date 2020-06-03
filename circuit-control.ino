@@ -493,6 +493,7 @@ void volumeControlStateMachine(){
     case PEEP_PAUSE_STATE:
       Serial.println("in PEEP state");
       expFlowReader.updateVolume();
+      Serial.print("target PEEP pause"); Serial.print("\t"); Serial.println(millis() + MIN_PEEP_PAUSE); //@debugging
       Serial.print("millis - peepPauseTimer"); Serial.print("\t"); Serial.println(millis() - peepPauseTimer); //@debugging
       if (millis() - peepPauseTimer >= MIN_PEEP_PAUSE) {
         // record the peep as the current pressure
