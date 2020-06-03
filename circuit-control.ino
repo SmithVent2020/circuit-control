@@ -100,9 +100,9 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print("IP");Serial.print("\t");
   Serial.print("EP");Serial.print("\t");
   Serial.print("RP");Serial.print("\t");
-  Serial.print("IF");Serial.print("\t");
   Serial.print("IV");Serial.print("\t");
-  Serial.println("EV");Serial.print("\t");
+  Serial.print("IV");Serial.print("\t");
+  Serial.println("EV");
 
   Serial.print(millis()); Serial.print("\t");
   Serial.print(inspFlowReader.get()); Serial.print("\t"); //L/min
@@ -267,6 +267,7 @@ void beginInspiration() {
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
   inspValve.beginBreath(desiredInspFlow);
+  Serial.println("begin breath with prop valve");
 
   // Start computing inspiration volume
   inspFlowReader.resetVolume();
@@ -287,6 +288,7 @@ void beginHoldInspiration() {
 
   // close prop valve and                     air/oxygen
   inspValve.endBreath();
+  Serial.println("end breath with prop vale");
 
   inspHoldTimer = millis();
 
@@ -297,6 +299,7 @@ void beginHoldInspiration() {
 void beginExpiration() {
   //Serial.println("entering exp state"); //uncomment for @debugging
   inspValve.endBreath();
+  Serial.println("endBreath with prop valve");
   expValve.open();
   expTimer = millis();
   //digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly

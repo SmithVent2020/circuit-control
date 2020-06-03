@@ -20,9 +20,9 @@ void Flow::read() {
 
   // sensor_read(0.5-4.5 V) maps linearly to flow_rate_ (0-150 SLPM)
   const float Fmax                = 150;                     // max flow in SLPM. (Min flow is 0)
-  const unsigned long Vsupply     = 5000;                    // voltage supplied, mv
-  const unsigned long sensorMin   = 1023UL * 500 / Vsupply;  // Sensor value at 500 mv
-  const unsigned long sensorMax   = 1023UL * 4500 / Vsupply; // Sensor value at 4500 mv
+  const unsigned long Vsupply     = 5;                    // voltage supplied, mv
+  const unsigned long sensorMin   = 1023UL * 0.5 / Vsupply;  // Sensor value at 500 mv
+  const unsigned long sensorMax   = 1023UL * 4.5 / Vsupply; // Sensor value at 4500 mv
   const unsigned long sensorRange = sensorMax - sensorMin;
 
   // Convert analog reading to flow rate at standard temperature and pressure
