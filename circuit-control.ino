@@ -94,37 +94,26 @@ void volumeControlStateMachine();
 
 
 void displaySensors(){ //for @debugging and testing purposes
-  Serial.print("time");
-  Serial.print("\t");
-  Serial.print("IF");
-  Serial.print("\t");
-  Serial.print("IP");
-  Serial.print("\t");
-  Serial.print("RP");
-  Serial.print("\t");
-  Serial.print("EF");
-  Serial.print("\t");
-  Serial.print("IV");
-  Serial.print("\t");
-  Serial.print("EV");
-  Serial.print("\t");
-  Serial.println("EP");
+  Serial.print("time"); Serial.print("\t");
+  Serial.print("IF");Serial.print("\t");
+  Serial.print("EF");Serial.print("\t");
+  Serial.print("IP");Serial.print("\t");
+  Serial.print("EP");Serial.print("\t");
+  Serial.print("RP");Serial.print("\t");
+  Serial.print("IF");Serial.print("\t");
+  Serial.print("IV");Serial.print("\t");
+  Serial.println("EV");Serial.print("\t");
 
-  Serial.print(millis());
-  Serial.print("\t");
-  Serial.print(inspFlowReader.get());  //L/min
-  Serial.print("\t");
-  Serial.print(inspPressureReader.get()); //cmH2O
-  Serial.print("\t");
-  Serial.print(reservoirPressureReader.get());
-  Serial.print("\t");
-  Serial.print(expFlowReader.get());   //L/min
-  Serial.print("\t");
-  Serial.print(inspFlowReader.getVolume());  //cc
-  Serial.print("\t");
-  Serial.print(expFlowReader.getVolume());   //cc
-  Serial.print("\t");
-  Serial.println(expPressureReader.get()); //cmH2O
+  Serial.print(millis()); Serial.print("\t");
+  Serial.print(inspFlowReader.get()); Serial.print("\t"); //L/min
+  Serial.print(expFlowReader.get()); Serial.print("\t");  //L/min
+  Serial.print(inspPressureReader.get()); Serial.print("\t"); //cmH2O
+  Serial.print(expPressureReader.get()); Serial.print("\t") //cmH2O
+  Serial.print(reservoirPressureReader.get()); Serial.print("\t"); //cmH2O
+  Serial.print(inspFlowReader.getVolume());  Serial.print("\t");//cc
+  Serial.println(expFlowReader.getVolume());   //cc
+  
+  
   
 }
 //-------------------Set Up--------------------
@@ -157,8 +146,8 @@ void setup() {
   //targetExpDuration = (100-vc_settings.inspPercent)*vc_settings.bpm/200; //begin the targeExpDuration at half what the entire expiratory cycle (exp, PEEP pause, and exp hold) will take
 
   ventMode = VC_MODE; //for testing VC mode only
-  //expValve.close(); //close exp valve
-  digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
+  expValve.close(); //close exp valve
+  //digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
   setState(OFF_STATE);
 
   // @TODO: implement startup sequence on display
@@ -193,7 +182,7 @@ void loop() {
   o2Management(vc_settings.o2concentration);
 
   if (ventMode == PS_MODE) {
-    Serial.println("entering PS mode");
+    //Serial.println("entering PS mode"); @debugging
     // Run pressure support mode
     o2Management(ps_settings.o2concentration);
     pressureSupportStateMachine();
@@ -240,13 +229,13 @@ void beginOff() {
   inspValve.endBreath();
 
   // keep expiratory valve open?
-  //expValve.open();
-  digitalWrite(SV4_CONTROL, LOW);  //@debugging to see if SV4 open and close function is working correctly
+  expValve.open();
+  //digitalWrite(SV4_CONTROL, LOW);  //@debugging to see if SV4 open and close function is working correctly
   Serial.println("opened expValve");
 }
 
 void beginInspiration() {
-  Serial.println("entering insp state"); //uncomment for @debugging
+  //Serial.println("entering insp state"); //uncomment for @debugging
   cycleDuration = millis() - cycleTimer;
   cycleTimer = millis();  // the cycle begins at the start of inspiration
   // We could have an inspTimer, but it would be the same as cycleTimer.
@@ -287,13 +276,13 @@ void beginInspiration() {
 }
 
 void beginInsiratorySustain() {
-  Serial.println("entering insp Sustain state"); //uncomment for @debugging
+  //Serial.println("entering insp Sustain state"); //uncomment for @debugging
   // Pressure has reached set point. Record peak flow.
   inspFlowReader.setPeakAndReset();
 }
 
 void beginHoldInspiration() {
-  Serial.println("entering hold insp state"); //uncomment for @debugging
+  //Serial.println("entering hold insp state"); //uncomment for @debugging
   // Volume control only. Not used for pressure support mode.
 
   // close prop valve and                     air/oxygen
@@ -306,7 +295,7 @@ void beginHoldInspiration() {
 }
 
 void beginExpiration() {
-  Serial.println("entering exp state"); //uncomment for @debugging
+  //Serial.println("entering exp state"); //uncomment for @debugging
   inspValve.endBreath();
   expValve.open();
   expTimer = millis();
@@ -321,13 +310,13 @@ void beginExpiration() {
 }
 
 void beginPeepPause() {
-  Serial.println("entering PEEP Pause state"); //uncomment for @debugging
+  //Serial.println("entering PEEP Pause state"); //uncomment for @debugging
   peepPauseTimer = millis();
 }
 
 void beginHoldExpiration() {
   // Nothing to do when entering hold expiration state
-  Serial.println("entering exp hold state"); //uncomment for @debugging
+  //Serial.println("entering exp hold state"); //uncomment for @debugging
 }
 
 void pressureSupportStateMachine() {
@@ -423,7 +412,7 @@ void pressureSupportStateMachine() {
 }
 
 void volumeControlStateMachine(){
-  Serial.println(state);
+  //Serial.println(state);
 
   switch (state) {
     case OFF_STATE:
