@@ -147,6 +147,7 @@ void setup() {
 
   ventMode = VC_MODE; //for testing VC mode only
   expValve.close(); //close exp valve
+  Serial.println("closing expValve");
   //digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
   setState(OFF_STATE);
 
@@ -484,7 +485,7 @@ void volumeControlStateMachine(){
       expFlowReader.updateVolume();
       Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime + EXP_TIME_SENSITIVITY); //@debugging
       Serial.print("target exp volume"); Serial.print("\t"); Serial.println(targetExpVolume);
-      if ( millis() > targetExpEndTime + EXP_TIME_SENSITIVITY) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume ||
+      if ( millis() > targetExpEndTime ) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume || EXP_TIME_SENSITIVITY +
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
