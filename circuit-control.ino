@@ -94,13 +94,13 @@ void volumeControlStateMachine();
 
 
 void displaySensors(){ //for @debugging and testing purposes
+  Serial.println(" ");
   Serial.print("time"); Serial.print("\t");
   Serial.print("IF");Serial.print("\t");
   Serial.print("EF");Serial.print("\t");
   Serial.print("IP");Serial.print("\t");
   Serial.print("EP");Serial.print("\t");
   Serial.print("RP");Serial.print("\t");
-  Serial.print("IV");Serial.print("\t");
   Serial.print("IV");Serial.print("\t");
   Serial.println("EV");
 
@@ -301,6 +301,7 @@ void beginExpiration() {
   inspValve.endBreath();
   Serial.println("endBreath with prop valve");
   expValve.open();
+  //digitalWrite(SV4_CONTROL, LOW);
   expTimer = millis();
   //digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
   Serial.println("opened expValve"); //@debugging
