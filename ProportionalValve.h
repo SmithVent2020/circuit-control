@@ -17,7 +17,7 @@ class ProportionalValve {
     void move();
     void  setGains(double kp, double ki, double kd);
     void  beginBreath(float desiredFlow);
-    void  maintainBreath(unsigned long cycleTimer);
+    void  maintainBreath(unsigned long inspElapsedTime);
     void  endBreath();
     float integrateReadings();
     void  initializePID(double outputMin, double outputMax, int sampleTime);

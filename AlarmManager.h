@@ -1,10 +1,11 @@
-#ifndef ALARM_MANAGER_H
-#define ALARM_MANAGER_H
+#ifndef AlarmManager_h
+#define AlarmManager_h
 
 #include <Arduino.h>
 #include <limits.h>
 
 #include "Constants.h"
+#include "Timer.h"
 
 // enumerate alarm types
 enum alarmCode {
@@ -81,16 +82,16 @@ class AlarmManager {
     int alarmPhaseLED = 0;
 
     // timestamp for unsilencing alarm
-    unsigned long alarmRearm = ULONG_MAX;
+    CountdownTimer alarmRearm;
 
     // timestamp for next alarm tone
-    unsigned long alarmNextTone = ULONG_MAX;
+    CountdownTimer alarmNextTone;
 
     // timestamp for next alarm tone
-    unsigned long alarmNextBlink = ULONG_MAX;
+    CountdownTimer alarmNextBlink;
 };
 
 // The alarm maranger
 extern AlarmManager alarmMgr;
 
-#endif
+#endif // AlarmManager_h

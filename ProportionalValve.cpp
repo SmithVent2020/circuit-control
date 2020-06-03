@@ -30,7 +30,7 @@ void ProportionalValve::move() {
   //Serial.print("PID setpoint:"); Serial.print("\t"); Serial.println(pid_setpoint_);
   controller.Compute(); // do a round of inspiratory PID computing
   position_ = (int)pid_output_;     // move according to the position calculated by the PID controller
-  analogWrite(valve_pin_, position_); 
+  analogWrite(valve_pin_, position_);
   //Serial.print("SV3 at ");
   //Serial.println(position_);
 }
@@ -56,8 +56,8 @@ void ProportionalValve::beginBreath(float desiredSetpoint) {
 /**
  * Compute PID output and continue moving the valve
  */
-void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
-  if(millis() - cycleTimer < burst_wait_){
+void ProportionalValve::maintainBreath(unsigned long inspElapsedTime) {
+  if(inspElapsedTime < burst_wait_){
     //wait for initial burst to settle
     //Serial.println("waiting for burst to settle"); //@debugging
     position_ = previousPosition;

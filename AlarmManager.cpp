@@ -22,7 +22,9 @@ AlarmManager::AlarmManager() {
     alarms[i] = false;
   }
   alarmSounding = alarmLED = false;
-  alarmPhase = alarmPhaseLED = alarmNextTone = alarmNextBlink = 0;
+
+  alarmPhase = alarmPhaseLED = 0;
+  alarmRearm.cancel();
 }
 
 /*
@@ -116,7 +118,7 @@ void AlarmManager::deactivateAlarm(alarmCode code) {
     if (top == ALARM_NONE) {
       // no alarms remain
       alarmSounding = alarmLED = false;
-      alarmRearm = ULONG_MAX;
+      alarmRearm.cancel();
     } else if (top > code) {   // recall that lowest code is highest priority!
       // lower priority alarm remains
       beginAlarm();
@@ -142,7 +144,7 @@ bool AlarmManager::alarmStatus(alarmCode code) {
 void AlarmManager::silence(unsigned int durationMs) {
   alarmSounding = false;
   noTone(BUZZER);  // stop auditory alarm but leave LED on
-  alarmRearm = millis() + durationMs;
+  alarmRearm.start(durationMs);
 }
 
 /*
@@ -159,9 +161,10 @@ bool AlarmManager::isSilenced() {
  */
 void AlarmManager::beginAlarm() {
   alarmSounding = alarmLED = true;
-  alarmNextTone = alarmNextBlink = millis();  // reset for new alarm
+  alarmNextTone.start(0);  // Put into expired state so that tone starts immediately
+  alarmNextBlink.start(0); // Put into expired state so that LED lights immediately
   alarmPhase = alarmPhaseLED = 0;
-  alarmRearm = ULONG_MAX;
+  alarmRearm.cancel();
 }
 
 /*
@@ -189,19 +192,6 @@ void AlarmManager::quellAlarm(alarmCode code) {
 }
 
 /**
- * Checks whether a specified time has elapsed.
- *
- * Assuming that very large difference between time and target
- * is result of rollover.
- *
- * R/O t: current time
- * R/O targetTime:  target time
- */
-bool AlarmManager::timeIsNow(unsigned long t, unsigned long targetTime) {
-  return t >= targetTime && t - targetTime < (ULONG_MAX >> 1);
-}
-
-/**
  * Updates alarm LED/buzzer status as necessary based on current top alarm and phase
  *
  * Each priority level has a hard-coded pattern of sound & LED display
@@ -210,10 +200,9 @@ bool AlarmManager::timeIsNow(unsigned long t, unsigned long targetTime) {
  * but this seems good enough for a small number of possibilities
  */
 void AlarmManager::maintainAlarms() {
-  unsigned long t = millis();
 
   // first check if there are silenced alarms that need to be reactivated
-  if (timeIsNow(t,alarmRearm)) {
+  if (alarmRearm.hasExpired()) {
     beginAlarm();
   }
 
@@ -221,7 +210,7 @@ void AlarmManager::maintainAlarms() {
     alarmCode top = topAlarm();
     if (top != ALARM_NONE) {
       // audible alarms (current highest only):
-      if (timeIsNow(t,alarmNextTone)) {
+      if (alarmNextTone.hasExpired()) {
         // @TODO These alarms would be better expressed as a table and state machine
         switch (getAlarmPriority(top)) {
           case HIGH_PRIORITY:
@@ -237,23 +226,23 @@ void AlarmManager::maintainAlarms() {
               case 8:
                 tone(BUZZER,880,75);
                 alarmPhase += 1;
-                alarmNextTone = t+125;
+                alarmNextTone.start(125);
                 break;
               case 2:
               case 7:
                 tone(BUZZER,880,75);
                 alarmPhase += 1;
-                alarmNextTone = t+250;
+                alarmNextTone.start(250);
                 break;
               case 4:
                 tone(BUZZER,880,75);
                 alarmPhase += 1;
-                alarmNextTone = t+625;
+                alarmNextTone.start(625);
                 break;
               case 9:
                 tone(BUZZER,880,75);
                 alarmPhase = 0;
-                alarmNextTone = t+6125;
+                alarmNextTone.start(6125);
                 break;
             }
             break;
@@ -263,21 +252,21 @@ void AlarmManager::maintainAlarms() {
             if (alarmPhase == 0) {
               tone(BUZZER,660,150);
               alarmPhase = 1;
-              alarmNextTone = t+250;
+              alarmNextTone.start(250);
             } else if (alarmPhase == 1) {
               tone(BUZZER,660,150);
               alarmPhase = 2;
-              alarmNextTone = t+250;
+              alarmNextTone.start(250);
             } else {
               tone(BUZZER,660,150);
               alarmPhase = 0;
-              alarmNextTone = t+12250;
+              alarmNextTone.start(12250);
             }
             break;
           case LOW_PRIORITY:
             // one 2000 ms tone, not repeated
             tone(BUZZER,440,2000);  // D3
-            alarmNextTone = ULONG_MAX;
+            alarmNextTone.cancel();
             alarmSounding = false;
             break;
         }
@@ -290,7 +279,7 @@ void AlarmManager::maintainAlarms() {
     }
     if (alarmLED == true) {
       // visible alarms (both LED can blink if appropriate)
-      if (timeIsNow(t,alarmNextBlink)) {
+      if (alarmNextBlink.hasExpired()) {
         // high priority blinks red LED at 2 Hz
         if (onPriority(HIGH_PRIORITY)) {
           digitalWrite(RED_LED, 1-alarmPhaseLED%2);
@@ -307,7 +296,7 @@ void AlarmManager::maintainAlarms() {
           digitalWrite(YELLOW_LED, LOW);
         }
         alarmPhaseLED = (alarmPhaseLED+1)%10;
-        alarmNextBlink = t+250;
+        alarmNextBlink.start(250);
       }
     } else {
       // no alarm detected -- reaching this point is probably a bug
