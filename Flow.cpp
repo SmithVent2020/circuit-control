@@ -24,7 +24,6 @@ void Flow::read() {
   const long sensorMin   = 1023L * 500 / Vsupply;  // Sensor value at 500 mv
   const long sensorMax   = 1023L * 4500 / Vsupply; // Sensor value at 4500 mv
   const long sensorRange = sensorMax - sensorMin;
-
   // Convert analog reading to flow rate at standard temperature and pressure
   flow_rate_ = (R - sensorMin) * (Fmax / sensorRange);
 }
