@@ -16,7 +16,7 @@ Flow::Flow(int pin) {
  */
 void Flow::read() {
   // read the voltage
-  unsigned long R = analogRead(sensor_pin_);
+  long R = analogRead(sensor_pin_);
   Serial.print("R (flow analog reading"); Serial.print("\t"); Serial.println(R);
 
   // sensor_read(0.5-4.5 V) maps linearly to flow_rate_ (0-150 SLPM)
