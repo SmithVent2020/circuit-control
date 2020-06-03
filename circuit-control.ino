@@ -108,7 +108,7 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print(inspFlowReader.get()); Serial.print("\t"); //L/min
   Serial.print(expFlowReader.get()); Serial.print("\t");  //L/min
   Serial.print(inspPressureReader.get()); Serial.print("\t"); //cmH2O
-  Serial.print(expPressureReader.get()); Serial.print("\t") //cmH2O
+  Serial.print(expPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(reservoirPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(inspFlowReader.getVolume());  Serial.print("\t");//cc
   Serial.println(expFlowReader.getVolume());   //cc
