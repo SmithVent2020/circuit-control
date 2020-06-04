@@ -513,7 +513,7 @@ void volumeControlStateMachine(){
       Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       Serial.print(""); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       
-      if (timeout) { //@debugging add back:patientTriggered || 
+      if (patientTriggered || timeout) { //@debugging add back:
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
