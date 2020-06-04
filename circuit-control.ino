@@ -526,14 +526,18 @@ void volumeControlStateMachine(){
       bool timeout = (cycleTimer  > targetCycleEndTime);
      
       Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
-      Serial.print(""); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
+      Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
       
       if (timeout) { //@debugging add back with real patient: patientTriggered ||
-        if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
+        if (!patientTriggered){
+          expPressureReader.setPeep();  // set peep again if time triggered
+        }
+        
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
         setState(INSP_STATE);
       }
+      
     } break;
   } // End switch
 }
