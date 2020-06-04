@@ -140,7 +140,7 @@ void setup() {
 
   //setup PID controller
   inspValve.initializePID(40, 120, 50); //set output max to 40, output min to 120 and sample time to 50
-  inspValve.previousPIDOutput = 65;                                              //initial value for valve to open according to previous tests (close to desired)
+  inspValve.previousPosition = 65;      //initial value for valve to open according to previous tests (close to desired)
 
   //initialize timers:
   //targetExpDuration = (100-vc_settings.inspPercent)*vc_settings.bpm/200; //begin the targeExpDuration at half what the entire expiratory cycle (exp, PEEP pause, and exp hold) will take

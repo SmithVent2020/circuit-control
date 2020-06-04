@@ -21,18 +21,18 @@ class ProportionalValve {
     void  endBreath();
     float integrateReadings();
     void  initializePID(double outputMin, double outputMax, int sampleTime);
-    float previousPIDOutput = 0;   //initial value chosen from previous tests (close to desired opening)(should be global)
+    int previousPosition = 0;   // position of valve at end of last breath (close to desired opening)(should be global)
     double desiredSetpoint = 0;
 
-    float get() const { return position_; }
-    float position() const { return position_; }
+    int get() const { return position_; }
+    int position() const { return position_; }
 
 
 
   private:
     int valve_pin_;
-    float position_          = 0.0;
-    double pid_setpoint_     = 10.0;  //set the setpoint to a lowish flowrate
+    int position_  = 0;     // physical position setting of the valve (0-255)
+    double pid_setpoint_     = 10.0;  // default the setpoint to a lowish flowrate
     double pid_input_        = 0.0;
     double pid_output_       = 0.0;
     double kp_ = VKP;

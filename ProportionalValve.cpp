@@ -8,7 +8,7 @@ unsigned long nextPID    = 0;
  * Initializes PID control with constant gains
  */
 // ProportionalValve::ProportionalValve() {
-//   position_ = 0.0;
+//   position_ = 0;
 //   valve_pin_ = SV3_CONTROL;
 // }
 
@@ -26,7 +26,8 @@ void ProportionalValve::setGains(double kp, double ki, double kd) {
  */
 void ProportionalValve::move() {
   controller.Compute(); // do a round of inspiratory PID computing
-  analogWrite(valve_pin_, pid_output_);      // move according to the position calculated by the PID controller
+  position_ = (int)pid_output_;     // move according to the position calculated by the PID controller
+  analogWrite(valve_pin_, position_); 
 }
 
 /**
@@ -35,9 +36,11 @@ void ProportionalValve::move() {
 void ProportionalValve::beginBreath(float desiredSetpoint) {
 
   //implement burst to unstick SV3
+  position_ = burst_amplitude_;
   analogWrite(SV3_CONTROL, burst_amplitude_);    //set SV3 all the way open
-  delay(burst_time_);                      //wait for 15 milliseconds
-  analogWrite(SV3_CONTROL, previousPIDOutput); //open SV3 all to desired opening (calculated based on previous breath's opening)
+  delay(burst_time_);                            //wait for 15 milliseconds
+  position_ = previousPosition;
+  analogWrite(SV3_CONTROL, previousPosition);   //open SV3 all to desired opening (calculated based on previous breath's opening)
 
   // set setpoint to desired inspiratory flow rate set tidal volume/ desired inspiratory time
   float pid_setpoint_ = desiredSetpoint;
@@ -52,7 +55,8 @@ void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
   if(millis() - cycleTimer < burst_wait_){
     //wait for initial burst to settle
     Serial.println("waiting for burst to settle"); //@debugging
-    analogWrite(valve_pin_, previousPIDOutput); // move according to previous output
+    position_ = previousPosition;
+    analogWrite(valve_pin_, position_); // move according to previous output
   }
   else if(controller.GetMode() == MANUAL){
     //if the controller is turned off, turn it on and move the valve
@@ -72,7 +76,7 @@ void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
  * Trigger expiration
  */
 void ProportionalValve::endBreath() {
-  previousPIDOutput = pid_output_;  //save successfull position to begin with next loop
+  previousPosition = pid_output_;  //save successfull position to begin with next loop
 
   // turn off insp PID computing
   controller.SetMode(MANUAL);    //Turn off PID controller
