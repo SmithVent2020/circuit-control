@@ -9,27 +9,34 @@
 #include "Arduino.h"
 #include "Constants.h"
 
+enum ValveState {
+  CLOSED,   // 0
+  OPEN  // 1
+};
+
 class Valve {
 public:
   Valve(int pin, bool normallyOpen)
     : valve_pin_(pin)
     , is_normally_open_(normallyOpen)
-    , state_(false) {}
+    , state_(normallyOpen ? OPEN:CLOSED) {}
 
   void open() {
+    state_ = OPEN;
     is_normally_open_ ? digitalWrite(valve_pin_, LOW) : digitalWrite(valve_pin_, HIGH);
   }
 
   void close() {
+    state_ = CLOSED;
     is_normally_open_ ? digitalWrite(valve_pin_, HIGH) : digitalWrite(valve_pin_, LOW);
   }
 
-  float get() const { return state_; }
+  ValveState get() const { return state_; }
 
 private:
   int valve_pin_;
   bool is_normally_open_;
-  bool state_;
+  ValveState state_;
 };
 
 // Valves
