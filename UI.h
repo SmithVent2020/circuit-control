@@ -20,18 +20,17 @@ struct vc_settings_t {
 extern vc_settings_t vc_settings;
 
 struct vc_display_t {
-  int pip;               //cmH2O
-  int pPlat;             //cmH2O
-  int PEEP;              //cmH2O
-  long inspTidalVolume;  //mL (cc)
-  long expTidalVolume;   //mL (cc)
-  long minuteVolume;     //L/min
-  long respiratoryRate;  //bpm
-  long FIO2;             //%
-  
-}
+  int pip;               // cmH2O
+  int pPlat;             // cmH2O
+  int PEEP;              // cmH2O
+  long inspTidalVolume;  // mL (cc)
+  long expTidalVolume;   // mL (cc)
+  long minuteVolume;     // L/min
+  int respiratoryRate;   // bpm
+  int FIO2;              // %
+};
 
-extern vc_display_t, vc_display;
+extern vc_display_t vc_display;
 
 // Pressure support settings type.
 // @TODO: update these values from UI inputs
