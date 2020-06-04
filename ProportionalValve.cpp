@@ -8,7 +8,7 @@ unsigned long nextPID    = 0;
  * Initializes PID control with constant gains
  */
 // ProportionalValve::ProportionalValve() {
-//   position_ = 0;
+//   position_ = 0.0;
 //   valve_pin_ = SV3_CONTROL;
 // }
 
