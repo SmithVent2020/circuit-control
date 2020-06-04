@@ -290,7 +290,7 @@ void beginInspiration() {
   Serial.println("begin breath with prop valve");
 
   // Start computing inspiration volume
-  Serial.print("max Insp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.get());
+  Serial.print("max Insp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume());
   inspFlowReader.resetVolume();
   
   // turn on PID for inspiratory valve (input = pressure, setpoint = 0)
@@ -332,7 +332,7 @@ void beginExpiration() {
   Serial.print("expStartTime ="); Serial.print("\t"); Serial.println(expTimer);
   targetExpEndTime = expTimer + targetExpDuration;
   
-  Serial.print("max exp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.get());
+  Serial.print("max exp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume());
   expFlowReader.resetVolume();
 }
 
