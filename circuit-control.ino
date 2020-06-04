@@ -438,7 +438,7 @@ void volumeControlStateMachine(){
       bool timeout = (millis() >= targetInspEndTime);
       Serial.print("targetInspEndTime ="); Serial.print("\t"); Serial.println(targetInspEndTime); //@debugging
       Serial.print("set TV volume ="); Serial.print("\t"); Serial.println(vc_settings.volume); //@debugging
-      if (timeout) { //@debugging add the following back: inspFlowReader.getVolume() >= vc_settings.volume ||
+      if (inspFlowReader.getVolume() >= vc_settings.volume || timeout) { //@debugging add the following back: 
         if (timeout) {
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
@@ -487,7 +487,7 @@ void volumeControlStateMachine(){
       expFlowReader.updateVolume();
       Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime); //@debugging + EXP_TIME_SENSITIVITY
       Serial.print("target exp volume"); Serial.print("\t"); Serial.println(targetExpVolume);
-      if ( millis() > targetExpEndTime) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume || EXP_TIME_SENSITIVITY +
+      if (expFlowReader.getVolume() >= targetExpVolume || millis() > targetExpEndTime) { //@debugging: add the following back:  EXP_TIME_SENSITIVITY +
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
