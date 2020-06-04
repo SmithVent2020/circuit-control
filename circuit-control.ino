@@ -338,6 +338,7 @@ void pressureSupportStateMachine() {
 
     case INSP_STATE:
       inspFlowReader.updateVolume();
+      expFlowReader.updateVolume();
 
       // @TODO compute PID based on linear pressure function
 
@@ -353,6 +354,7 @@ void pressureSupportStateMachine() {
 
     case INSP_SUSTAIN_STATE:
       inspFlowReader.updateVolume();
+      expFlowReader.updateVolume();
       if (inspFlowReader.get() < (CYCLE_OFF * inspFlowReader.peak())) {
         setState(EXP_STATE);
         beginExpiration();
@@ -370,6 +372,7 @@ void pressureSupportStateMachine() {
 
     case EXP_STATE:
       expFlowReader.updateVolume();
+      inspFlowReader.updateVolume();
       // Move to peep pause if the expiratory volume is at least at the target volume
       if (expFlowReader.getVolume() >= targetExpVolume) {
         setState(PEEP_PAUSE_STATE);
@@ -435,6 +438,7 @@ void volumeControlStateMachine(){
     case INSP_STATE: {
       Serial.println("in insp state"); //@debugging
       inspFlowReader.updateVolume();
+      expFlowReader.updateVolume();
       bool timeout = (millis() >= targetInspEndTime);
       //Serial.print("targetInspEndTime ="); Serial.print("\t"); Serial.println(targetInspEndTime); //@debugging
       //Serial.print("set TV volume ="); Serial.print("\t"); Serial.println(vc_settings.volume); //@debugging
@@ -485,6 +489,7 @@ void volumeControlStateMachine(){
     case EXP_STATE:
       Serial.println("in exp state");
       expFlowReader.updateVolume();
+      inspFlowReader.updateVolume();
       //Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime); //@debugging + EXP_TIME_SENSITIVITY
       //Serial.print("target exp volume"); Serial.print("\t"); Serial.println(targetExpVolume);
       if (expFlowReader.getVolume() >= targetExpVolume || millis() > targetExpEndTime) { //@debugging: add the following back:  EXP_TIME_SENSITIVITY +
@@ -509,6 +514,7 @@ void volumeControlStateMachine(){
     case HOLD_EXP_STATE: {
       Serial.println("in exp Hold state");
       expFlowReader.updateVolume();
+      inspFlowReader.updateVolume();
       
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
