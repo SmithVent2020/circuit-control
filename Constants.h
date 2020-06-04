@@ -111,5 +111,6 @@ const float ATM_IN_CMH2O = 1033.23;
 // conversion from actual liters, not a conversion from SLPM, as such a
 // conversion involves pressure.
 const float LPM_TO_CC_PER_MS =  1000.0 / 60000.0;
+const float CC_PER_MS_TO_LPM = 60000.0/1000.0;
 
 #endif

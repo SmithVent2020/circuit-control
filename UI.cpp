@@ -14,6 +14,17 @@ vc_settings_t vc_settings = {
   /* bool  inspHoldOn      = */ false  // Do we want to hold inspiration?
 };
 
+vc_display_t vc_display = {
+  /*int pip =*/              0,  //cmH2O
+  /*int pPlat; =*/           0, //cmH2O
+  /*int PEEP;=*/             0,  //cmH2O
+  /*long insptidalVolume;=*/ 0,  //mL (cc)
+  /*long expTidalVolume;=*/  0,  //mL (cc)
+  /*long minuteVolume; =*/   0,  //L/min
+  /*long respiratoryRate;=*/ 0,  //bpm
+  /*long FIO2; =*/           0  //%
+  
+};
 
 ps_settings_t ps_settings = {
   /* int   bpm             = */ 35,   // Respiratory rate

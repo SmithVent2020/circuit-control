@@ -19,6 +19,20 @@ struct vc_settings_t {
 // Global Volume Control settings
 extern vc_settings_t vc_settings;
 
+struct vc_display_t {
+  int pip;               //cmH2O
+  int pPlat;             //cmH2O
+  int PEEP;              //cmH2O
+  long inspTidalVolume;  //mL (cc)
+  long expTidalVolume;   //mL (cc)
+  long minuteVolume;     //L/min
+  long respiratoryRate;  //bpm
+  long FIO2;             //%
+  
+}
+
+extern vc_display_t, vc_display;
+
 // Pressure support settings type.
 // @TODO: update these values from UI inputs
 struct ps_settings_t {
