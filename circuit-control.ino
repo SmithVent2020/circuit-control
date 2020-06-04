@@ -261,6 +261,8 @@ void beginInspiration() {
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
+    Serial.print("targetCycleEndTime set to:"); Serial.print("\t"); Serial.println(targetCycleEndTime);
+    Serial.print("target duration set to:"); Serial.print("\t"); Serial.println(targetCycleDuration);
   }
 
   inspPressureReader.setPeakAndReset(); //cmH2O
@@ -483,9 +485,9 @@ void volumeControlStateMachine(){
     case EXP_STATE:
       Serial.println("in exp state");
       expFlowReader.updateVolume();
-      Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime + EXP_TIME_SENSITIVITY); //@debugging
+      Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime); //@debugging + EXP_TIME_SENSITIVITY
       Serial.print("target exp volume"); Serial.print("\t"); Serial.println(targetExpVolume);
-      if ( millis() > targetExpEndTime ) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume || EXP_TIME_SENSITIVITY +
+      if ( millis() > targetExpEndTime) { //@debugging: add the following back: expFlowReader.getVolume() >= targetExpVolume || EXP_TIME_SENSITIVITY +
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
