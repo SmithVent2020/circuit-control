@@ -436,7 +436,7 @@ void volumeControlStateMachine(){
       bool timeout = (millis() >= targetInspEndTime);
       Serial.print("targetInspEndTime ="); Serial.print("\t"); Serial.println(targetInspEndTime); //@debugging
       Serial.print("set TV volume ="); Serial.print("\t"); Serial.println(vc_settings.volume); //@debugging
-      if (timeout) { //@debugging add the following back: inspFlowReader.getVolume() >= vc_settings.volume ||
+      if (inspFlowReader.getVolume() >= vc_settings.volume || timeout) { //@debugging add the following back: 
         if (timeout) {
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
