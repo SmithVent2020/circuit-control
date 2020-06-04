@@ -93,6 +93,8 @@ void pressureSupportStateMachine();
 void volumeControlStateMachine();
 
 
+
+
 void displaySensors(){ //for @debugging and testing purposes
   Serial.println(" ");
   Serial.print("time"); Serial.print("\t");
@@ -131,7 +133,11 @@ void valveStates() {
 
 //-------------------Set Up--------------------
 void setup() {
-  delay(10000); //allow 10 seconds for the tester to get they system ready @debugging
+  delay(1000); //allow 10 seconds for the tester to get they system ready @debugging
+
+  inspFlowReader.calibrateToZero(); //set non-flow analog readings as the 0 in the flow reading functions
+  expFlowReader.calibrateToZero();
+  
   Serial.begin(115200);   // open serial port for @debugging
 
   // initialize pins with pinMode command

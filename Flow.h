@@ -16,6 +16,8 @@ class Flow {
     void read();
     void setPeakFlow();
     void reset();
+    void calibrateToZero();
+    
 
     void setPeakAndReset() {
       peak_flow_ = current_peak_;
@@ -35,6 +37,7 @@ class Flow {
     // Since maximum inspiration pressure is rarely more than 20 cmH2O over atm, this measurement can be considered a
     // reasonably accurate measurement of actual volume.
     float getVolume() const { return accum_volume_; }
+
     
     
 
@@ -45,6 +48,7 @@ class Flow {
     // only needed for pressure support
     float peak_flow_;
     float current_peak_;
+    long zeroed_sensor_min_ = 500; //sensor minimum usually around 500, calebrated in Setup
 
     // Volume integraton
     unsigned long last_timepoint_; // Time of last call to `resetVolume` or `updateVolume`.
