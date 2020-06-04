@@ -523,7 +523,7 @@ void volumeControlStateMachine(){
       
       // Check if patient triggers inhale
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - SENSITIVITY_PRESSURE;
-      bool timeout = (cycleTimer  > targetCycleEndTime);
+      bool timeout = (millis()  > targetCycleEndTime);
      
       Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
