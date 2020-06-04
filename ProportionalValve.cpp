@@ -28,6 +28,8 @@ void ProportionalValve::move() {
   controller.Compute(); // do a round of inspiratory PID computing
   position_ = (int)pid_output_;     // move according to the position calculated by the PID controller
   analogWrite(valve_pin_, position_); 
+  Serial.print("SV3 at ");
+  Serial.println(position_);
 }
 
 /**
