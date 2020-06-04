@@ -309,7 +309,7 @@ void beginExpiration() {
   //digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
   Serial.println("opened expValve"); //@debugging
 
-  targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
+  targetExpVolume = inspFlowReader.getVolume() * 7 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
 
   Serial.print("expStartTime ="); Serial.print("\t"); Serial.println(expTimer);
   targetExpEndTime = expTimer + targetExpDuration;
