@@ -17,7 +17,7 @@ Flow::Flow(int pin) {
 void Flow::read() {
   // read the voltage
   long R = analogRead(sensor_pin_);
-  Serial.print("R (flow analog reading"); Serial.print("\t"); Serial.println(R);
+  //Serial.print("R (flow analog reading"); Serial.print("\t"); Serial.println(R);
 
   // sensor_read(0.5-4.5 V) maps linearly to flow_rate_ (0-150 SLPM)
   const float Fmax       = 150;                     // max flow in SLPM. (Min flow is 0)
@@ -58,7 +58,7 @@ void Flow::updateVolume() {
   // Theoretically, we could get slightly better accuracy by choosing the midpoint between
   // the previous flow and the current flow, but that is unlikely to make much difference.
   accum_volume_ += flow * interval;
-  Serial.print("accum_volume_ after ="); Serial.print("\t"); Serial.println(accum_volume_);
+  //Serial.print("accum_volume_ after ="); Serial.print("\t"); Serial.println(accum_volume_);
   last_timepoint_ = new_timepoint;
 }
 

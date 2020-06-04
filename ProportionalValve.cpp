@@ -51,18 +51,18 @@ void ProportionalValve::beginBreath(float desiredSetpoint) {
 void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
   if(millis() - cycleTimer < burst_wait_){
     //wait for initial burst to settle
-    Serial.println("waiting for burst to settle"); //@debugging
+    //Serial.println("waiting for burst to settle"); //@debugging
     analogWrite(valve_pin_, previousPIDOutput); // move according to previous output
   }
   else if(controller.GetMode() == MANUAL){
     //if the controller is turned off, turn it on and move the valve
-    Serial.println("turning on and moving insp valve"); //@debugging
+    //Serial.println("turning on and moving insp valve"); //@debugging
     controller.SetMode(AUTOMATIC);
     move();
   }
   else{
     //otherwise continue computing and giving output
-    Serial.println("moving insp valve"); //@debugging
+    //Serial.println("moving insp valve"); //@debugging
     move();
   }
 
