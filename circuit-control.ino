@@ -435,7 +435,7 @@ void volumeControlStateMachine(){
       bool timeout = (millis() >= targetInspEndTime);
       Serial.print("targetInspEndTime ="); Serial.print("\t"); Serial.println(targetInspEndTime); //@debugging
       Serial.print("insp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume()); //@debugging
-      if (inspFlowReader.getVolume() >= vc_settings.volume || timeout) { //@debugging add the following back:
+      if ( timeout) { //@debugging add the following back: inspFlowReader.getVolume() >= vc_settings.volume ||
         if (timeout) {
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
@@ -484,7 +484,7 @@ void volumeControlStateMachine(){
       expFlowReader.updateVolume();
       Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime + EXP_TIME_SENSITIVITY); //@debugging
       Serial.print("target exp volume"); Serial.print("\t"); Serial.println(targetExpVolume);
-      if (expFlowReader.getVolume() >= targetExpVolume || millis() > targetExpEndTime + EXP_TIME_SENSITIVITY) { //@debugging: add the following back:
+      if  (millis() > targetExpEndTime + EXP_TIME_SENSITIVITY) { //@debugging: add the following back: (expFlowReader.getVolume() >= targetExpVolume ||
         setState(PEEP_PAUSE_STATE);
         beginPeepPause();
       }
@@ -513,7 +513,7 @@ void volumeControlStateMachine(){
       Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       Serial.print(""); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       
-      if (patientTriggered || timeout) { //@debugging add back:
+      if (timeout) { //@debugging add back:patientTriggered || 
         if (!patientTriggered) expPressureReader.setPeep();  // set peep again if time triggered
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
