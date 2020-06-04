@@ -116,6 +116,19 @@ void displaySensors(){ //for @debugging and testing purposes
   
   
 }
+
+
+void valveStates() {
+  Serial.print("SV1: ");
+  Serial.print(airValve.get());
+  Serial.print("  SV2: ");
+  Serial.print(oxygenValve.get());
+  Serial.print("  SV3: ");
+  Serial.print(inspValve.get());
+  Serial.print("  SV4: ");
+  Serial.print(expValve.get());
+}
+
 //-------------------Set Up--------------------
 void setup() {
   delay(10000); //allow 10 seconds for the tester to get they system ready @debugging
