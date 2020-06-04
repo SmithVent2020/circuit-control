@@ -153,6 +153,12 @@ void setup() {
 
   // @TODO: implement startup sequence on display
   // display.begin();
+
+  //Unstick the valve
+  analogWrite(SV3_CONTROL, 255);
+  delay(100);
+  analogWrite(SV3_CONTROL, 0);
+  
   cycleTimer = millis();
 }
 
@@ -501,6 +507,7 @@ void volumeControlStateMachine(){
     case PEEP_PAUSE_STATE:
       Serial.println("in PEEP state");
       expFlowReader.updateVolume();
+      inspFlowReader.updateVolume();
       //Serial.print("target PEEP pause"); Serial.print("\t"); Serial.println(millis() + MIN_PEEP_PAUSE); //@debugging
       //Serial.print("millis - peepPauseTimer"); Serial.print("\t"); Serial.println(millis() - peepPauseTimer); //@debugging
       if (millis() - peepPauseTimer >= MIN_PEEP_PAUSE) {
