@@ -7,7 +7,7 @@
 // Volume Control settings type
 // @TODO: update these values from UI inputs
 struct vc_settings_t {
-  int   volume;          // Tidal volume in cc
+  long   volume;          // Tidal volume in cc
   int   bpm;             // Respiratory rate
   int   inspPercent;     // % of breath that is inhalation (ie / (ie + 1))
   float peak;            // peak pressure (PiP)
