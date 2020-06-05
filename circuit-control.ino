@@ -261,8 +261,8 @@ void beginInspiration() {
 
   display.writeVolumeInsp(inspFlowReader.getVolume());
   display.writeVolumeExp(expFlowReader.getVolume()); 
-  display.writeBPM((1/cycleDuration) * CC_PER_MS_TO_LPM);
-  display.writeMinuteVolume(inspFlowReader.getVolume() * (1/cycleDuration) * CC_PER_MS_TO_LPM);
+  display.writeBPM(CC_PER_MS_TO_LPM/cycleDuration));
+  display.writeMinuteVolume(inspFlowReader.getVolume()/cycleDuration) * CC_PER_MS_TO_LPM);
 
   // close expiratory valve
   expValve.close();
