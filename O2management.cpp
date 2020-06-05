@@ -15,7 +15,7 @@ void o2Management(int O2target){
       airValve.open();
     }
     else if(O2target == 60){
-      Serial.println("opening air and O2 valves");
+      //Serial.println("opening air and O2 valves");
       airValve.open();
       oxygenValve.open();
     }
@@ -23,7 +23,7 @@ void o2Management(int O2target){
       oxygenValve.open();
     }
     else{
-      Serial.println("invalid O2 concentration entered -- default to air only");
+      //Serial.println("invalid O2 concentration entered -- default to air only");
       airValve.open();
     }
   }
