@@ -22,12 +22,14 @@ public:
     , state_(normallyOpen ? OPEN:CLOSED) {}
 
   void open() {
+    Serial.print("opeing onn/off valve");
     //Serial.println("Opening I/O Valve");
     state_ = OPEN;
     is_normally_open_ ? digitalWrite(valve_pin_, LOW) : digitalWrite(valve_pin_, HIGH);
   }
 
   void close() {
+    Serial.print("closing onn/off valve");
     //Serial.println("closing I/O valve");
     state_ = CLOSED;
     is_normally_open_ ? digitalWrite(valve_pin_, HIGH) : digitalWrite(valve_pin_, LOW);
