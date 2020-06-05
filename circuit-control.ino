@@ -127,7 +127,7 @@ void displaySensors(){ //for @debugging and testing purposes
 
 
 void valveStates() {
-  Serial.print("SV1: ");
+  Serial.print(" SV1: ");
   Serial.print(airValve.get());
   Serial.print("  SV2: ");
   Serial.print(oxygenValve.get());

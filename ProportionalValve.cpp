@@ -48,7 +48,7 @@ void ProportionalValve::beginBreath(float desiredSetpoint) {
   analogWrite(SV3_CONTROL, previousPosition);   //open SV3 all to desired opening (calculated based on previous breath's opening)
 
   // set setpoint to desired inspiratory flow rate set tidal volume/ desired inspiratory time
-  float pid_setpoint_ = desiredSetpoint;
+  pid_setpoint_ = desiredSetpoint;
   controller.Initialize();
   active_memory_ = used_memory_ = 0; //reset PID memory
 }
