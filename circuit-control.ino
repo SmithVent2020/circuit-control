@@ -291,13 +291,13 @@ void beginInspiration() {
   else {
     unsigned long targetCycleDuration = 60000UL / vc_settings.bpm; // ms from start of cycle to end of inspiration
     targetInspDuration = targetCycleDuration * vc_settings.inspPercent / 100;
-    Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
+    //Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
-    Serial.print("vc_settings.volume"); Serial.print("\t"); Serial.println(vc_settings.volume);
+    //Serial.print("vc_settings.volume"); Serial.print("\t"); Serial.println(vc_settings.volume);
     desiredInspFlow = (vc_settings.volume*CC_PER_MS_TO_LPM/targetInspDuration); //desired inspiratory flowrate cc/ms
-    Serial.print("desiredInspFlow:"); Serial.print("\t"); Serial.println(desiredInspFlow);
+    //Serial.print("desiredInspFlow:"); Serial.print("\t"); Serial.println(desiredInspFlow);
   }
 
   inspPressureReader.setPeakAndReset(); //cmH2O
@@ -305,10 +305,10 @@ void beginInspiration() {
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
   inspValve.beginBreath(desiredInspFlow);
-  Serial.println("begin breath with prop valve");
+  //Serial.println("begin breath with prop valve");
 
   // Start computing inspiration volume
-  Serial.print("max Insp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume());
+  //Serial.print("max Insp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume());
   inspFlowReader.resetVolume();
 
   // turn on PID for inspiratory valve (input = pressure, setpoint = 0)
@@ -327,7 +327,7 @@ void beginHoldInspiration() {
 
   // close prop valve and                     air/oxygen
   inspValve.endBreath();
-  Serial.println("end breath with prop vale");
+  //Serial.println("end breath with prop vale");
   inspHoldTimer = millis();
 
   // Measure inspiration hold only once per button-press
@@ -340,19 +340,19 @@ void beginExpiration() {
   vc_display.inspTidalVolume = inspFlowReader.getVolume(); //record inspiratory tidal Volume
 
   inspValve.endBreath();
-  Serial.println("endBreath with prop valve");
+  //Serial.println("endBreath with prop valve");
   expValve.open();
   //digitalWrite(SV4_CONTROL, LOW);
   expTimer = millis();
   //digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
-  Serial.println("opened expValve"); //@debugging
+  //Serial.println("opened expValve"); //@debugging
 
   targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
 
-  Serial.print("expStartTime ="); Serial.print("\t"); Serial.println(expTimer);
+  //Serial.print("expStartTime ="); Serial.print("\t"); Serial.println(expTimer);
   targetExpEndTime = expTimer + targetExpDuration;
 
-  Serial.print("max exp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume());
+  //Serial.print("max exp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume());
   expFlowReader.resetVolume();
 
 }

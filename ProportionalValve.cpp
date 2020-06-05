@@ -26,8 +26,8 @@ void ProportionalValve::setGains(double kp, double ki, double kd) {
  */
 void ProportionalValve::move() {
   pid_input_ = inspFlowReader.get();
-  Serial.print("PID input:"); Serial.print("\t"); Serial.println(pid_input_);
-  Serial.print("PID setpoint:"); Serial.print("\t"); Serial.println(pid_setpoint_);
+  //Serial.print("PID input:"); Serial.print("\t"); Serial.println(pid_input_);
+  //Serial.print("PID setpoint:"); Serial.print("\t"); Serial.println(pid_setpoint_);
   controller.Compute(); // do a round of inspiratory PID computing
   position_ = (int)pid_output_;     // move according to the position calculated by the PID controller
   analogWrite(valve_pin_, position_); 

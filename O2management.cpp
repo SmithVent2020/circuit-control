@@ -12,16 +12,16 @@ void o2Management(int O2target){
 
   if(reservoirPressureReader.get()<= LOWER_PRESSURE_THRESHOLD){
     if(O2target == 21){
-      Serial.println("opening air and O2 valves (O2% = 21)");
+      //Serial.println("opening air and O2 valves (O2% = 21)");
       airValve.open();
     }
     else if(O2target == 60){
-      Serial.println("opening air and O2 valves, (O2% = 60)");
+      //Serial.println("opening air and O2 valves, (O2% = 60)");
       airValve.open();
       oxygenValve.open();
     }
     else if(O2target == 100){
-      Serial.println("opening air and O2 valves (O2% = 100)");
+      //Serial.println("opening air and O2 valves (O2% = 100)");
       oxygenValve.open();
     }
     else{
@@ -30,7 +30,7 @@ void o2Management(int O2target){
     }
   }
   else if(reservoirPressureReader.get() >= UPPER_PRESSURE_THRESHOLD){
-    Serial.println("closing air and O2 valves");
+    //Serial.println("closing air and O2 valves");
     airValve.close();
     oxygenValve.close();
   }
