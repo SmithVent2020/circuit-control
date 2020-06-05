@@ -293,10 +293,12 @@ void beginInspiration() {
   else {
     unsigned long targetCycleDuration = 60000UL / vc_settings.bpm; // ms from start of cycle to end of inspiration
     targetInspDuration = targetCycleDuration * vc_settings.inspPercent / 100;
+    Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
     desiredInspFlow = vc_settings.volume/targetInspDuration; //desired inspiratory flowrate cc/ms
+    Serial.print("desiredInspFlow:"); Serial.print("\t"); Serial.println(desiredInspFlow);
   }
 
   inspPressureReader.setPeakAndReset(); //cmH2O
