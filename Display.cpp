@@ -17,7 +17,7 @@ Display::Display() {
   settings.inspHold = false;
   settings.peak = PS_MIN;
   settings.apnea = APNEA_BACKUP/1000;;
-  settings.cycleOff = CYCLE_OFF
+  settings.cycleOff = CYCLE_OFF;
   settings.riseTime = RISE_TIME/1000;
 
   turnOff = false;
