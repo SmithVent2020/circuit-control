@@ -20,7 +20,7 @@
 #include "ProportionalValve.h"
 #include "O2management.h"
 #include "AlarmManager.h"
-#include "UI.h"
+#include "Display.h"
 
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
 unsigned long cycleCount = 0; // number of breaths (including current breath)
@@ -57,16 +57,11 @@ bool DEBUG = false;
 bool ventilatorOn = false;
 VentMode ventMode = VC_MODE;
 
-// @TODO: Implement Display class
-// Display display();
 
 //--------------Declare Functions--------------
 
 // Set the current state in the state machine
 void setState(States newState);
-
-// Calculates the waveform parameters from the user inputs
-void calculateWaveform();
 
 // Check for errors and take appropriate action
 void handleErrors();
@@ -92,16 +87,11 @@ void recordBreathValues(){
 
  }
 
-
-
 // PS algorithm
 void pressureSupportStateMachine();
 
 // VC algorithm
 void volumeControlStateMachine();
-
-
-
 
 void displaySensors(){ //for @debugging and testing purposes
   Serial.println(" ");
@@ -122,9 +112,6 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print(reservoirPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(inspFlowReader.getVolume());  Serial.print("\t");//cc
   Serial.println(expFlowReader.getVolume());   //cc
-
-
-
 }
 
 
@@ -189,16 +176,14 @@ void loop() {
   // @TODO: alarm maintenance
   // display.fetchValues() // @TODO: fetch new values from display
 
-
-
-  //calculateWaveform();
-
   //read all the pressure and flow sensors
   readSensors();
   displaySensors(); //for @debugging
 
   //handleErrors();        // check thresholds against sensor values
   // display.update();     // @TODO: update display with sensor readings and flow graph
+  display.updateFlowWave(inspFlowReader.get());
+  display.updatePressureWave(inspPressureReader.get());
 
   // @TODO: implement OFF button functionality to UI with confirmation
   // if (display.turnedOff()) {
@@ -206,19 +191,19 @@ void loop() {
   // }
 
   //manage reservoir refilling
-  o2Management(vc_settings.o2concentration);
+  o2Management(display.oxygen());
 
   if (ventMode == PS_MODE) {
     //Serial.println("entering PS mode"); @debugging
     // Run pressure support mode
-    o2Management(ps_settings.o2concentration);
+    o2Management(display.oxygen());
     pressureSupportStateMachine();
   }
   else if (ventMode == VC_MODE) {
     //Serial.println("Entering VC_Mode");
     // Run volume control mode
 
-    o2Management(vc_settings.o2concentration);
+    o2Management(display.oxygen());
 
     //Serial.println("entering VC state machine");
 
@@ -267,17 +252,17 @@ void beginInspiration() {
   cycleTimer = millis();  // the cycle begins at the start of inspiration
   // We could have an inspTimer, but it would be the same as cycleTimer.
 
-
   //record values from previous breath
   expDuration = cycleTimer - expTimer;
 
-  vc_display.pip = inspPressureReader.peak();             //cmH2O
-  vc_display.pPlat = inspPressureReader.plateau();        //cmH2O
-  vc_display.PEEP =expPressureReader.peep();              //cmH2O
-  vc_display.expTidalVolume = expFlowReader.getVolume();                                     //record expiratory tidal volume
-  vc_display.respiratoryRate = (1/cycleDuration)*CC_PER_MS_TO_LPM;                           //measured bpm
-  vc_display.minuteVolume = (vc_display.inspTidalVolume*(1/cycleDuration))*CC_PER_MS_TO_LPM; //record minuteVolume in LPM
+  display.writePeak(inspPressureReader.peak()); //cmH2O
+  display.writePeep(expPressureReader.peep()); //cmH2O
+  display.writePlateau(inspPressureReader.plateau()); //cmH2O
 
+  display.writeVolumeInsp(inspFlowReader.getVolume());
+  display.writeVolumeExp(expFlowReader.getVolume()); 
+  display.writeBPM((1/cycleDuration) * CC_PER_MS_TO_LPM);
+  display.writeMinuteVolume(inspFlowReader.getVolume() * (1/cycleDuration) * CC_PER_MS_TO_LPM);
 
   // close expiratory valve
   expValve.close();
@@ -286,17 +271,17 @@ void beginInspiration() {
 
   // Compute intervals at current settings
   if (ventMode == PS_MODE) {
-    unsigned long targetCycleDuration = 60000UL / ps_settings.bpm; // ms from start of cycle to end of inspiration
+    unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetCycleDuration / 2;    // @TODO: How should this be set?
   }
   else {
-    unsigned long targetCycleDuration = 60000UL / vc_settings.bpm; // ms from start of cycle to end of inspiration
-    targetInspDuration = targetCycleDuration * vc_settings.inspPercent / 100;
+    unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
+    targetInspDuration = targetCycleDuration * display.ie() / 100;
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
-    desiredInspFlow = vc_settings.volume/targetInspDuration; //desired inspiratory flowrate cc/ms
+    desiredInspFlow = display.volume()/targetInspDuration; //desired inspiratory flowrate cc/ms
   }
 
   inspPressureReader.setPeakAndReset(); //cmH2O
@@ -330,14 +315,13 @@ void beginHoldInspiration() {
   inspHoldTimer = millis();
 
   // Measure inspiration hold only once per button-press
-  vc_settings.inspHoldOn = false;
+  display.resetInspHold();
 }
 
 void beginExpiration() {
   //Serial.println("entering exp state"); //uncomment for @debugging
 
-  vc_display.inspTidalVolume = inspFlowReader.getVolume(); //record inspiratory tidal Volume
-
+  display.writeVolumeInsp(inspFlowReader.getVolume()); //record inspiratory tidal Volume
   inspValve.endBreath();
   Serial.println("endBreath with prop valve");
   expValve.open();
@@ -385,7 +369,7 @@ void pressureSupportStateMachine() {
       // check if we reached peak pressure
       // still PID, setpoint should be peak constantly
 
-      if (inspPressureReader.peak() >= ps_settings.peak) {
+      if (inspPressureReader.peak() >= display.peak()) {
         inspDuration = millis() - cycleTimer; // Record length of inspiration
         beginInsiratorySustain();
         setState(INSP_SUSTAIN_STATE);
@@ -481,12 +465,12 @@ void volumeControlStateMachine(){
       bool timeout = (millis() >= targetInspEndTime);
       //Serial.print("targetInspEndTime ="); Serial.print("\t"); Serial.println(targetInspEndTime); //@debugging
       //Serial.print("set TV volume ="); Serial.print("\t"); Serial.println(vc_settings.volume); //@debugging
-      if (inspFlowReader.getVolume() >= vc_settings.volume || timeout) { //@debugging add the following back:
+      if (inspFlowReader.getVolume() >= display.volume() || timeout) { //@debugging add the following back:
         if (timeout) {
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
 
-        if (vc_settings.inspHoldOn) {
+        if (display.inspHold()) {
           setState(HOLD_INSP_STATE);
           Serial.print("calling beginHoldInspiration");
           beginHoldInspiration();

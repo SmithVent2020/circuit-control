@@ -32,6 +32,16 @@ const unsigned long HOLD_INSP_DURATION = 500; // Interval to pause after inhalat
 const unsigned long MIN_PEEP_PAUSE = 50;      // Interval to pause after exhalation / before watching for an assisted inhalation
 const unsigned long MAX_EXP_DURATION = 1000;  // Maximum exhale duration (ms)
 
+// Graph settings
+const int GRAPH_MIN = 0;
+const int GRAPH_MAX = 255;
+
+const int FLOW_RANGE_MIN = -60;
+const int FLOW_RANGE_MAX = 100;
+
+const int PRESSURE_RANGE_MIN = -7; 
+const int PRESSURE_RANGE_MAX = 70;
+
 // ---------------------
 // PINS
 // ---------------------
@@ -70,11 +80,15 @@ const int BPM_RES = 1;          // resolution (increments of 1)
 const int O2_MIN = 21;
 const int O2_MAX = 100;
 const int O2_RES = 1;           // resolution (increments of 1)
-const float IE_MIN = 1;
-const float IE_MAX = 4;
-const float IE_RES = 0.1;       // resolution (increments of 0.1)
+const int IE_INSP = 1;
+const float IE_EXP_MIN = 1;
+const float IE_EXP_MAX = 4;
+const float IE_EXP_RES = 1;       // resolution [1:1, 1:2, 1:3, 1:4]
 const float ERROR_VOLUME = 80;  // acceptable margin of error in tidal volume (should be 20% of VT)
 const float TIDAL_VOLUME = 400;            // in mL (cc's)
+const float PEAK_MIN = 20;
+const float PEAK_MAX = 40;
+const float PEAK_RES = 1;
 const float CYCLE_OFF = 0.25;              // % peak flow at which to switch to EXP in PS_MODE
 const unsigned long APNEA_BACKUP = 15000;  // in milliseconds
 const unsigned long RISE_TIME = 4000;      // max time (ms) it takes to reach PiP
@@ -86,7 +100,6 @@ const float MIN_PLATEAU_PRESSURE = 5.0; // Trigger low insp pressure alarm
 const float SENSITIVITY_PRESSURE = 2; // acceptable margin of error in inspiratory pressure (in cmH2O)
 const float EXP_TIME_SENSITIVITY = 400; //ms the time "wiggle room" we allow for the patient to exhail 80% of air in VC mode 
 
-
 // ---------------------
 // PID Control Values
 // ---------------------
@@ -95,10 +108,6 @@ const float EXP_TIME_SENSITIVITY = 400; //ms the time "wiggle room" we allow for
 const float VKP = 0.225; //proportional constant
 const float VKI = 1.08;  //integral constant
 const float VKD = 0;     //derivative constant
-
-
-
-
 
 // --------------------------
 // Generally-useful Constants
