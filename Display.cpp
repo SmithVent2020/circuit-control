@@ -10,10 +10,10 @@ char buffer2[20];
 Display::Display() {
   settings.o2 = O2_MIN;
   settings.sensitivity = SENSITIVITY_MIN;
-  settings.bpm = BPM_MIN;
+  settings.bpm = 20;
   settings.ie[0] = IE_INSP;
-  settings.ie[1] = IE_EXP_MIN; 
-  settings.volume = TIDAL_VOLUME;
+  settings.ie[1] = 2; 
+  settings.volume = 400;
   settings.inspHold = false;
   settings.peak = PS_MIN;
   settings.apnea = APNEA_BACKUP/1000;
