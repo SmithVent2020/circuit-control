@@ -275,8 +275,8 @@ void beginInspiration() {
   vc_display.pPlat = inspPressureReader.plateau();        //cmH2O
   vc_display.PEEP =expPressureReader.peep();              //cmH2O
   vc_display.expTidalVolume = expFlowReader.getVolume();                                     //record expiratory tidal volume
-  vc_display.respiratoryRate = (1/cycleDuration)*CC_PER_MS_TO_LPM;                           //measured bpm
-  vc_display.minuteVolume = (vc_display.inspTidalVolume*(1/cycleDuration))*CC_PER_MS_TO_LPM; //record minuteVolume in LPM
+  vc_display.respiratoryRate = (CC_PER_MS_TO_LPM/cycleDuration);                           //measured bpm
+  vc_display.minuteVolume = (vc_display.inspTidalVolume/cycleDuration)*CC_PER_MS_TO_LPM; //record minuteVolume in LPM
 
 
   // close expiratory valve
