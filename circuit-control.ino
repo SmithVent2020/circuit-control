@@ -298,7 +298,7 @@ void beginInspiration() {
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
     Serial.print("vc_settings.volume"); Serial.print("\t"); Serial.println(vc_settings.volume);
-    desiredInspFlow = (vc_settings.volume/targetInspDuration)*CC_PER_MS_TO_LPM; //desired inspiratory flowrate cc/ms
+    desiredInspFlow = (vc_settings.volume*CC_PER_MS_TO_LPM/targetInspDuration); //desired inspiratory flowrate cc/ms
     Serial.print("desiredInspFlow:"); Serial.print("\t"); Serial.println(desiredInspFlow);
   }
 
