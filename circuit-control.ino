@@ -123,8 +123,6 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print(inspFlowReader.getVolume());  Serial.print("\t");//cc
   Serial.println(expFlowReader.getVolume());   //cc
 
-
-
 }
 
 
