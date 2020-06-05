@@ -25,6 +25,7 @@ void ProportionalValve::setGains(double kp, double ki, double kd) {
  * Moves proportional valve given an increment in mm
  */
 void ProportionalValve::move() {
+  pid_input_ = inspFlowReader.get();
   Serial.print("PID input:"); Serial.print("\t"); Serial.println(pid_input_);
   Serial.print("PID setpoint:"); Serial.print("\t"); Serial.println(pid_setpoint_);
   controller.Compute(); // do a round of inspiratory PID computing
