@@ -21,6 +21,7 @@
 #include "O2management.h"
 #include "AlarmManager.h"
 #include "Display.h"
+#include "Nextion.h"
 
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
 unsigned long cycleCount = 0; // number of breaths (including current breath)
@@ -129,6 +130,7 @@ void valveStates() {
 //-------------------Set Up--------------------
 void setup() {
   delay(10000); //allow 10 seconds for the tester to get they system ready @debugging
+  nexInit();
   Serial.begin(115200);   // open serial port for @debugging
 
   inspFlowReader.calibrateToZero(); //set non-flow analog readings as the 0 in the flow reading functions
@@ -277,7 +279,7 @@ void beginInspiration() {
   }
   else {
     unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
-    targetInspDuration = targetCycleDuration * display.ie() / 100;
+    targetInspDuration = targetCycleDuration * display.inspPercent() / 100;
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;

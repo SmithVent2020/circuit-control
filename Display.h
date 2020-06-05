@@ -47,7 +47,7 @@ class Display {
 		bool inspHold() const { return settings.inspHold; }
 		int volume() const { return settings.volume; }
 		int bpm() const { return settings.bpm; } 
-		float ie() const { return (double)settings.ie[0]/ settings.ie[1]; } 
+		unsigned inspPercent() const { return settings.ie[0]*100 / (settings.ie[0] + settings.ie[1]); } 
 
 		// Pressure Support only
 		int peak() const { return settings.peak; }
