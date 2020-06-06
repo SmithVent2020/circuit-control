@@ -77,12 +77,12 @@ class Display {
 		NexButton hold = NexButton(7, 3, "b2");
 
 		// waveform
-		NexWaveform flowWave = NexWaveform(7, 11, "s0");
-		NexWaveform pressureWave = NexWaveform(7, 38, "s1");
+		NexWaveform flowWave = NexWaveform(7, 12, "s0");
+		NexWaveform pressureWave = NexWaveform(7, 42, "s1");
 
 		// settings
-		NexText VTText  = NexText( 7, 55, "t40" );
-		NexText RRText  = NexText( 7, 58, "t42" );
+		NexText VTText  = NexText( 7, 56, "t40" );
+		NexText RRText  = NexText( 7, 59, "t42" );
 		NexText O2Text  = NexText( 7, 61, "t44" );
 		NexText IEText  = NexText( 7, 64, "t46" );
 		NexText SenText = NexText( 7, 66, "t48" );
