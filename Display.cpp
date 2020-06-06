@@ -20,6 +20,12 @@ Display::Display() {
   settings.cycleOff = CYCLE_OFF;
   settings.riseTime = RISE_TIME/1000;
 
+  dbSerialPrintln("---------volume---------")
+  dbSerialPrintln(settings.volume);
+
+  dbSerialPrintln("---------RR---------")
+  dbSerialPrintln(settings.bpm);
+
   turnOff = false;
 }
 
@@ -35,9 +41,11 @@ void Display::init() {
 
 void Display::showVCSettings() {
   itoa(settings.volume, buffer, 10); 
+  dbSerialPrintln(buffer);
   VTText.setText(buffer);
 
   itoa(settings.bpm, buffer, 10);
+  dbSerialPrintln(buffer);
   RRText.setText(buffer);
 
   itoa(settings.o2, buffer, 10);
@@ -62,11 +70,15 @@ void Display::resetInspHold() {
 // -----------------
 void Display::updateFlowWave(float flow) {
   float val = map(flow, FLOW_RANGE_MIN, FLOW_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
+  dbSerialPrint("Flow waveform value------")
+  dbSerialPrintln(val);
   flowWave.addValue(0, val);
 }
 
 void Display::updatePressureWave(float pressure) {
   float val = map(pressure, PRESSURE_RANGE_MIN, PRESSURE_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
+  dbSerialPrint("Pressure waveform value------")
+  dbSerialPrintln(val);
   pressureWave.addValue(0, val);
 }
 

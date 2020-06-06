@@ -202,7 +202,7 @@ void loop() {
 
   // Graphs just show insp-side sensors
   display.updateFlowWave(inspFlowReader.get());
-  display.updateFlowWave(inspPressureReader.get());
+  display.updatePressureWave(inspPressureReader.get());
 
   //manage reservoir refilling
   o2Management(display.oxygen());
@@ -272,7 +272,7 @@ void beginInspiration() {
   display.writeVolumeExp(expFlowReader.getVolume());
   display.writeMinuteVolume(inspFlowReader.getVolume() * CC_PER_MS_TO_LPM / cycleDuration);
   display.writeBPM(60000.0/cycleDuration);                // measured respiratory rate
-  // display.writeO2();                                   // O2 sensor pending
+  display.writeO2(O2_MIN);                                   // O2 sensor pending
 
   // close expiratory valve
   expValve.close();
