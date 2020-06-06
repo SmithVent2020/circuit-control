@@ -73,6 +73,8 @@ class Display {
 			float riseTime;    // time to peak pressure (PS only)
 		} settings;
 
+		NexPage vcPage = NexPage(7, 0, "VCsliders");
+
 		// hold button
 		NexButton hold = NexButton(7, 3, "b2");
 
