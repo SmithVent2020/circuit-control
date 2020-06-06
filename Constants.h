@@ -123,4 +123,10 @@ const float ATM_IN_CMH2O = 1033.23;
 const float LPM_TO_CC_PER_MS =  1000.0 / 60000.0;
 const float CC_PER_MS_TO_LPM = 60000.0 / 1000.0;
 
+//Alarm thresholds
+const float TIDAL_VOLUME_SENSITVITY   = 10;//% OF SET TIDAL VOLUME
+const float PEEP_SENSITIVITY          = 3; //cmH2O
+const float INSP_PRESSURE_SENSITIVITY = 7; //cmH2O
+const float PPLAT_MAX                 = 33;//cmH2O
+
 #endif
