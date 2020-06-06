@@ -69,17 +69,19 @@ void Display::resetInspHold() {
 // waveforms
 // -----------------
 void Display::updateFlowWave(float flow) {
-  float val = map(flow, FLOW_RANGE_MIN, FLOW_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
+  int val = map(flow, FLOW_RANGE_MIN, FLOW_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Flow waveform value------");
   dbSerialPrintln(val);
-  flowWave.addValue(0, millis() % 4096 / 16);
+//   flowWave.addValue(0, millis() % 4096 / 16);
+  flowWave.addValue(val);
 }
 
 void Display::updatePressureWave(float pressure) {
-  float val = map(pressure, PRESSURE_RANGE_MIN, PRESSURE_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
+  int val = map(pressure, PRESSURE_RANGE_MIN, PRESSURE_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Pressure waveform value------");
   dbSerialPrintln(val);
-  pressureWave.addValue(0, millis() % 4096 / 16);
+//   pressureWave.addValue(0, millis() % 4096 / 16);
+  flowWave.addValue(val);
 }
 
 // -----------------
