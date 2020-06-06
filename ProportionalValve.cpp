@@ -1,5 +1,8 @@
 #include "ProportionalValve.h"
-// #include "PID_v1.h"
+#include "PID_v1.h"
+#include "Flow.h"
+
+unsigned long nextPID    = 0;
 
 /**
  * Initializes PID control with constant gains
@@ -21,51 +24,93 @@ void ProportionalValve::setGains(double kp, double ki, double kd) {
 /**
  * Moves proportional valve given an increment in mm
  */
-void ProportionalValve::move(float increment) {
-  // increment position
-  position_ += increment;
-
-  float valveRange = 5;      // (0-5 V) signal to valve
-  float orificeSize = 16.51; // size for iQ valves 700048 in mm
-
-  // calculate voltage and move to new position
-  float voltage = (valveRange/orificeSize) * position_ ;
-
-  // analogWrite takes a value between 0-255, so does this need to change?
-  analogWrite(valve_pin_, voltage);
+void ProportionalValve::move() {
+  pid_input_ = inspFlowReader.get();
+  //Serial.print("PID input:"); Serial.print("\t"); Serial.println(pid_input_);
+  //Serial.print("PID setpoint:"); Serial.print("\t"); Serial.println(pid_setpoint_);
+  controller.Compute(); // do a round of inspiratory PID computing
+  position_ = (int)pid_output_;     // move according to the position calculated by the PID controller
+  analogWrite(valve_pin_, position_); 
+  //Serial.print("SV3 at ");
+  //Serial.println(position_);
 }
 
 /**
  * Trigger inspiration by starting PID control
  */
-void ProportionalValve::beginBreath(float tInsp, float setVT) {
-  // set setpoint to desired inspiratory flow rate ()
-  float pid_setpoint_ = setVT/tInsp;
+void ProportionalValve::beginBreath(float desiredSetpoint) {
 
-  // turn on PID to open valves
-  controller.SetMode(AUTOMATIC);
+  //implement burst to unstick SV3
+  position_ = burst_amplitude_;
+  analogWrite(SV3_CONTROL, burst_amplitude_);    //set SV3 all the way open
+  delay(burst_time_);                            //wait for 15 milliseconds
+  position_ = previousPosition;
+  analogWrite(SV3_CONTROL, previousPosition);   //open SV3 all to desired opening (calculated based on previous breath's opening)
 
-  // first valve opening
-  maintainBreath();
+  // set setpoint to desired inspiratory flow rate set tidal volume/ desired inspiratory time
+  pid_setpoint_ = desiredSetpoint;
+  controller.Initialize();
+  active_memory_ = used_memory_ = 0; //reset PID memory
 }
 
 /**
  * Compute PID output and continue moving the valve
  */
-void ProportionalValve::maintainBreath() {
-  controller.Compute(); // do a round of inspiratory PID computing
-  move(pid_output_);      // move according to the position calculated by the PID controller
+void ProportionalValve::maintainBreath(unsigned long cycleTimer) {
+  if(millis() - cycleTimer < burst_wait_){
+    //wait for initial burst to settle
+    //Serial.println("waiting for burst to settle"); //@debugging
+    position_ = previousPosition;
+    analogWrite(valve_pin_, position_); // move according to previous output
+  }
+  else if(controller.GetMode() == MANUAL){
+    //if the controller is turned off, turn it on and move the valve
+    //Serial.println("turning on and moving insp valve"); //@debugging
+    controller.SetMode(AUTOMATIC);
+    move();
+  }
+  else{
+    //otherwise continue computing and giving output
+    //Serial.println("moving insp valve"); //@debugging
+    move();
+  }
+
 }
 
 /**
  * Trigger expiration
  */
 void ProportionalValve::endBreath() {
-  // turn off insp PID computing
-  controller.SetMode(MANUAL);
+  previousPosition = pid_output_;  //save successfull position to begin with next loop
 
-  move(-1 * position()); // close valve by reseting position, should be 0
+  // turn off insp PID computing
+  controller.SetMode(MANUAL);    //Turn off PID controller
+
+  analogWrite(valve_pin_, 0);    // close valve by reseting position, should be 0
 }
 
+void ProportionalValve::initializePID(double outputMin, double outputMax, int sampleTime){
+  controller.SetOutputLimits(outputMin, outputMax);
+  controller.SetSampleTime(sampleTime);
+}
+
+float ProportionalValve::integrateReadings(){
+  PIDMemory[(active_memory_+used_memory_)%memory_length_] = inspFlowReader.get(); //get most recent flow reading in insp line
+  //Serial.print("Measurement: ");
+  //Serial.println(PIDMemory[(active_memory_+used_memory_)%memory_length_]);
+  if (used_memory_ == memory_length_) {
+    active_memory_ = (active_memory_+1)%memory_length_;
+  } else {
+    used_memory_++;
+  }
+  float sum = 0;
+  for (int i = 0; i < used_memory_; i++) {
+    sum += PIDMemory[(active_memory_+i)%memory_length_];
+    //Serial.print(PIDMemory[(active_memory_+i)%memory_length_]);
+    //Serial.print(" ");
+  }
+  //Serial.println(" <-- Memory");
+  return sum/used_memory_;
+}
 // Inspiration valve
 ProportionalValve inspValve(SV3_CONTROL);

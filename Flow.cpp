@@ -16,16 +16,19 @@ Flow::Flow(int pin) {
  */
 void Flow::read() {
   // read the voltage
-  int V = analogRead(sensor_pin_);
+  long R = analogRead(sensor_pin_);
+  Serial.print("R (flow analog reading"); Serial.print("\t"); Serial.println(R);
 
-  const float Fmax = 150;     // max flow in SLPM
-  const float Vmax = 1023;    // max voltage in range from analogRead
-  const float Vsupply = 5.0;  // voltage supplied
-  const float sensorRange = (4.5 - 0.5); // voltage range returned by sensor
+  // sensor_read(0.5-4.5 V) maps linearly to flow_rate_ (0-150 SLPM)
+  const float Fmax       = 150;                     // max flow in SLPM. (Min flow is 0)
+  const long Vsupply     = 5000;                    // voltage supplied, mv
+  const long sensorMin   = zeroed_sensor_min_;      // @debugging: this is what used to be here:1023L*500 / Vsupply;  // Sensor value at 500 mv
+  const long sensorRange = 1023L * 4000 / 5000;     // 4000 mv range (regardless of calibration?)
+  // Convert analog reading to flow rate at standard temperature and pressure
+  flow_rate_ = (R - sensorMin) * (Fmax / sensorRange);
 
-  // convert to flow rate at standard temperature and pressure
-  // sensor_read(0.5-4.5 V) maps linearly to flow_rate_(0-150 SLPM) with
-  float flow_rate_ = Vsupply * V/Vmax * Fmax/sensorRange - 18.75;
+  //set peak
+  current_peak_ = max(current_peak_, flow_rate_);
 }
 
 /**
@@ -40,19 +43,27 @@ void Flow::resetVolume() {
  * Add the flow during the recent time interval to the accumulated value.
  */
 void Flow::updateVolume() {
+  //Serial.print("accum_volume_ before ="); Serial.print("\t"); Serial.println(accum_volume_);
+  //Serial.print("last_timepoint_ ="); Serial.print("\t"); Serial.println(last_timepoint_);
   unsigned long new_timepoint = millis();
+  //Serial.print("new_timepoint ="); Serial.print("\t"); Serial.println(new_timepoint);
   unsigned long interval = new_timepoint - last_timepoint_;
 
   // Convert flow from L/min to ml/ms.
   float flow = get() * LPM_TO_CC_PER_MS;
+  //Serial.print("flow ="); Serial.print("\t"); Serial.println(flow);
 
   // Multiply flow by time and add to accumulated volume.
   // Theoretically, we could get slightly better accuracy by choosing the midpoint between
   // the previous flow and the current flow, but that is unlikely to make much difference.
   accum_volume_ += flow * interval;
+  Serial.print("accum_volume_ after ="); Serial.print("\t"); Serial.println(accum_volume_);
   last_timepoint_ = new_timepoint;
 }
 
+void Flow::calibrateToZero(){
+  zeroed_sensor_min_ = analogRead(sensor_pin_);
+}
 // Flow sensors
 Flow inspFlowReader(FLOW_INSP);
 Flow expFlowReader(FLOW_EXP);

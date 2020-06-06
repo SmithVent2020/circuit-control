@@ -14,26 +14,40 @@ class ProportionalValve {
 
   public:
     ProportionalValve(int pin) : valve_pin_(pin) { }
+    void move();
+    void  setGains(double kp, double ki, double kd);
+    void  beginBreath(float desiredFlow);
+    void  maintainBreath(unsigned long cycleTimer);
+    void  endBreath();
+    float integrateReadings();
+    void  initializePID(double outputMin, double outputMax, int sampleTime);
+    int previousPosition = 0;   // position of valve at end of last breath (close to desired opening)(should be global)
+    double desiredSetpoint = 0;
 
-    void setGains(double kp, double ki, double kd);
-    void beginBreath(float tInsp, float setVT);
-    void maintainBreath();
-    void endBreath();
+    int get() const { return position_; }
+    int position() const { return position_; }
 
-    float get() const { return position_; }
-    float position() const { return position_; }
+
 
   private:
     int valve_pin_;
-    float position_ = 0.0;
-    double pid_setpoint_ = 0.0;
-    double pid_input_ = 0.0;
-    double pid_output_ = 0.0;
+    int position_  = 0;     // physical position setting of the valve (0-255)
+    double pid_setpoint_     = 10.0;  // default the setpoint to a lowish flowrate
+    double pid_input_        = 0.0;
+    double pid_output_       = 0.0;
     double kp_ = VKP;
     double ki_ = VKI;
     double kd_ = VKD;
-    PID controller = PID(&pid_input_, &pid_output_, &pid_setpoint_, kp_, ki_, kd_, DIRECT);
+    int active_memory_         = 0;     //number of active memory units
+    int used_memory_           = 0;     //number of used memory units
+    static const int burst_time_      = 15;    //milliseconds
+    static const int burst_amplitude_ = 255;   //amount to open SV3 during burst
+    static const int burst_wait_      = 100;   //milliseconds
+    static const int memory_length_   = 4;     //length of PID output memory
+    float PIDMemory[memory_length_];    //create an arrat of length memory_length_
 
+
+    PID controller = PID(&pid_input_, &pid_output_, &pid_setpoint_, kp_, ki_, kd_, DIRECT);
     void move(float increment);
 };
 

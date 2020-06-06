@@ -16,6 +16,7 @@ class Flow {
     void read();
     void setPeakFlow();
     void reset();
+    void calibrateToZero();
 
     void setPeakAndReset() {
       peak_flow_ = current_peak_;
@@ -43,6 +44,7 @@ class Flow {
     // only needed for pressure support
     float peak_flow_;
     float current_peak_;
+    long zeroed_sensor_min_ = 1023L * 500 / 5000; //sensor minimum usually around 500mv, calibrated in Setup
 
     // Volume integraton
     unsigned long last_timepoint_; // Time of last call to `resetVolume` or `updateVolume`.

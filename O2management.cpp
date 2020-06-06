@@ -4,13 +4,49 @@
 
 #include <limits.h> // For ULONG_MAX
 
+static const float UPPER_PRESSURE_THRESHOLD = 1756.67; //cmH2O (25 psi)
+static const float LOWER_PRESSURE_THRESHOLD = 703.07;  //cmH2O (10 psi)
+
+
+void o2Management(int O2target){
+
+  if(reservoirPressureReader.get()<= LOWER_PRESSURE_THRESHOLD){
+    if(O2target == 21){
+      //Serial.println("opening air and O2 valves (O2% = 21)");
+      airValve.open();
+    }
+    else if(O2target == 60){
+      //Serial.println("opening air and O2 valves, (O2% = 60)");
+      airValve.open();
+      oxygenValve.open();
+    }
+    else if(O2target == 100){
+      //Serial.println("opening air and O2 valves (O2% = 100)");
+      oxygenValve.open();
+    }
+    else{
+      Serial.println("invalid O2 concentration entered -- default to air only");
+      airValve.open();
+    }
+  }
+  else if(reservoirPressureReader.get() >= UPPER_PRESSURE_THRESHOLD){
+    //Serial.println("closing air and O2 valves");
+    airValve.close();
+    oxygenValve.close();
+  }
+  
+}
+//|===================================================================================================================================================================|
+//|---------Below this point is the code we would use for finer control of the O2 concentration if we had a working O2 sensor to calebrate it with--------------------|
+//|===================================================================================================================================================================|
+
 // During a tank top up, we open one valve at a time.
 // If we are using only one gas (O2 or air), then we skip the SECOND_VALVE_OPEN state.
-enum TopUpState {
-  VALVES_CLOSED,
-  FIRST_VALVE_OPEN,
-  SECOND_VALVE_OPEN
-};
+//enum TopUpState {
+//  VALVES_CLOSED,
+//  FIRST_VALVE_OPEN,
+//  SECOND_VALVE_OPEN
+//};
 
 /*
  * pressure limits:
@@ -37,109 +73,109 @@ enum TopUpState {
  */
 
 // All pressures are in cmH2O above atm
-static const float LOW_PRESSURE_LIMIT  = 703.0;  // 10 psi
-static const float HIGH_PRESSURE_LIMIT = 2109.2; // 30 psi
-static const float LOW_TOPUP_TRESHOLD  = 875.0;  // 160 cmH2O above LOW_PRESSURE_LIMIT plus margin of safety
-static const float HIGH_TOPUP_TRESHOLD = 1500.0; // Half way between LOW_TOPUP_THRESHOLD and HIGH_PRESSURE_LIMIT
+//static const float LOW_PRESSURE_LIMIT  = 703.0;  // 10 psi
+//static const float HIGH_PRESSURE_LIMIT = 2109.2; // 30 psi
+//static const float LOW_TOPUP_TRESHOLD  = 875.0;  // 160 cmH2O above LOW_PRESSURE_LIMIT plus margin of safety
+//static const float HIGH_TOPUP_TRESHOLD = 1500.0; // Half way between LOW_TOPUP_THRESHOLD and HIGH_PRESSURE_LIMIT
+//
+//static const unsigned long TOPUP_TIME  = 200;    // Time for one topup cycle @TODO: compute real value
+//
+//static unsigned long topUpTimer = 0;
+//static unsigned long topUpSwitchoverTime;  // Time at which to switch from O2 to air or vice-versa
+//static unsigned long topUpEndTime;
+//static unsigned long O2TimeInterval;
+//static unsigned long AirTimeInterval;
+//
+//static Valve *firstValvePtr = &oxygenValve;  // Pointer to first valve to be opened on this cycle
+//static Valve *secondValvePtr = &airValve;    // Pointer to second valve to be opened on this cycle
+//
+//static TopUpState state = VALVES_CLOSED;
 
-static const unsigned long TOPUP_TIME  = 200;    // Time for one topup cycle @TODO: compute real value
-
-static unsigned long topUpTimer = 0;
-static unsigned long topUpSwitchoverTime;  // Time at which to switch from O2 to air or vice-versa
-static unsigned long topUpEndTime;
-static unsigned long O2TimeInterval;
-static unsigned long AirTimeInterval;
-
-static Valve *firstValvePtr = &oxygenValve;  // Pointer to first valve to be opened on this cycle
-static Valve *secondValvePtr = &airValve;    // Pointer to second valve to be opened on this cycle
-
-static TopUpState state = VALVES_CLOSED;
-
-static void setState(TopUpState newState) {
-  state = newState;
-}
-
-static void computeIntervals(int O2target) {
-  O2TimeInterval  = (O2target - 21) * TOPUP_TIME / (100 - 21);
-  AirTimeInterval = TOPUP_TIME - O2TimeInterval;
-}
-
-// Swap the first valve and second valve
-static void swapValves() {
-  static Valve *temp = firstValvePtr;
-  firstValvePtr = secondValvePtr;
-  secondValvePtr = temp;
-}
-
-static void beginTopUp(unsigned long startTime) {
-  topUpTimer   = startTime;
-  topUpEndTime = topUpTimer + TOPUP_TIME;
-
-  // Choose the switch time interval depending on which gas is going first this time around.
-  unsigned long topUpSwitchInterval = (firstValvePtr == &oxygenValve) ? O2TimeInterval : AirTimeInterval;
-
-  if (topUpSwitchInterval > 0) {
-    topUpSwitchoverTime = topUpTimer + topUpSwitchInterval;
-  }
-  else {
-    // The first valve should be open for zero milliseconds.  Start with other gas and never switch.
-    swapValves();
-    topUpSwitchoverTime = ULONG_MAX;            // We will never switch gasses on this cycle
-  }
-
-  // Open the first valve.
-  firstValvePtr->open();
-  secondValvePtr->close();
-}
-
-static void endTopUp() {
-  oxygenValve.close();
-  airValve.close();
-  swapValves();   // Start with the oposite valve next time
-}
-
-void o2Management(int O2target) {
-
-  unsigned long currentTime = millis();
-
-  switch (state) {
-    case VALVES_CLOSED:
-      if (reservoirPressureReader.get() < LOW_TOPUP_TRESHOLD) {
-        computeIntervals(O2target);
-        beginTopUp(currentTime);
-        setState(FIRST_VALVE_OPEN);
-      }
-      break;
-
-    case FIRST_VALVE_OPEN:
-      if (currentTime >= topUpEndTime) {
-        if (reservoirPressureReader.get() < HIGH_TOPUP_TRESHOLD) {
-          beginTopUp(currentTime);
-          // Stay in this state
-        }
-        else {
-          endTopUp();
-          setState(VALVES_CLOSED);
-        }
-      }
-      else if (currentTime >= topUpSwitchoverTime) {
-        firstValvePtr->close();
-        secondValvePtr->open();
-        setState(SECOND_VALVE_OPEN);
-      }
-      break;
-
-    case SECOND_VALVE_OPEN:
-      if (currentTime >= topUpEndTime) {
-        if (reservoirPressureReader.get() < HIGH_TOPUP_TRESHOLD) {
-          beginTopUp(currentTime);
-          setState(FIRST_VALVE_OPEN);
-        }
-        else {
-          endTopUp();
-          setState(VALVES_CLOSED);
-        }
-      }
-      break;
-  }
-}
+//static void setState(TopUpState newState) {
+//  state = newState;
+//}
+//
+//static void computeIntervals(int O2target) {
+//  O2TimeInterval  = (O2target - 21) * TOPUP_TIME / (100 - 21);
+//  AirTimeInterval = TOPUP_TIME - O2TimeInterval;
+//}
+//
+//// Swap the first valve and second valve
+//static void swapValves() {
+//  static Valve *temp = firstValvePtr;
+//  firstValvePtr = secondValvePtr;
+//  secondValvePtr = temp;
+//}
+//
+//static void beginTopUp(unsigned long startTime) {
+//  topUpTimer   = startTime;
+//  topUpEndTime = topUpTimer + TOPUP_TIME;
+//
+//  // Choose the switch time interval depending on which gas is going first this time around.
+//  unsigned long topUpSwitchInterval = (firstValvePtr == &oxygenValve) ? O2TimeInterval : AirTimeInterval;
+//
+//  if (topUpSwitchInterval > 0) {
+//    topUpSwitchoverTime = topUpTimer + topUpSwitchInterval;
+//  }
+//  else {
+//    // The first valve should be open for zero milliseconds.  Start with other gas and never switch.
+//    swapValves();
+//    topUpSwitchoverTime = ULONG_MAX;            // We will never switch gasses on this cycle
+//  }
+//
+//  // Open the first valve.
+//  firstValvePtr->open();
+//  secondValvePtr->close();
+//}
+//
+//static void endTopUp() {
+//  oxygenValve.close();
+//  airValve.close();
+//  swapValves();   // Start with the oposite valve next time
+//}
+//
+//void o2Management(int O2target) {
+//
+//  unsigned long currentTime = millis();
+//
+//  switch (state) {
+//    case VALVES_CLOSED:
+//      if (reservoirPressureReader.get() < LOW_TOPUP_TRESHOLD) {
+//        computeIntervals(O2target);
+//        beginTopUp(currentTime);
+//        setState(FIRST_VALVE_OPEN);
+//      }
+//      break;
+//
+//    case FIRST_VALVE_OPEN:
+//      if (currentTime >= topUpEndTime) {
+//        if (reservoirPressureReader.get() < HIGH_TOPUP_TRESHOLD) {
+//          beginTopUp(currentTime);
+//          // Stay in this state
+//        }
+//        else {
+//          endTopUp();
+//          setState(VALVES_CLOSED);
+//        }
+//      }
+//      else if (currentTime >= topUpSwitchoverTime) {
+//        firstValvePtr->close();
+//        secondValvePtr->open();
+//        setState(SECOND_VALVE_OPEN);
+//      }
+//      break;
+//
+//    case SECOND_VALVE_OPEN:
+//      if (currentTime >= topUpEndTime) {
+//        if (reservoirPressureReader.get() < HIGH_TOPUP_TRESHOLD) {
+//          beginTopUp(currentTime);
+//          setState(FIRST_VALVE_OPEN);
+//        }
+//        else {
+//          endTopUp();
+//          setState(VALVES_CLOSED);
+//        }
+//      }
+//      break;
+//  }
+//}
