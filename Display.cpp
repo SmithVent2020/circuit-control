@@ -35,8 +35,6 @@ void Display::init() {
   // dbSerial is for debugging screen
   dbSerialPrintln("setup done");
 
-  vcPage.show();
-
   // show default values for settings
   showVCSettings();
 }
