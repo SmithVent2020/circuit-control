@@ -72,14 +72,14 @@ void Display::updateFlowWave(float flow) {
   float val = map(flow, FLOW_RANGE_MIN, FLOW_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Flow waveform value------");
   dbSerialPrintln(val);
-  flowWave.addValue(0, val);
+  flowWave.addValue(0, (uint8_t)val);
 }
 
 void Display::updatePressureWave(float pressure) {
   float val = map(pressure, PRESSURE_RANGE_MIN, PRESSURE_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Pressure waveform value------");
   dbSerialPrintln(val);
-  pressureWave.addValue(0, val);
+  pressureWave.addValue(0, (uint8_t)val);
 }
 
 // -----------------
