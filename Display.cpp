@@ -73,7 +73,7 @@ void Display::updateFlowWave(float flow) {
   dbSerialPrintln("Flow waveform value------");
   dbSerialPrintln(val);
 //   flowWave.addValue(0, millis() % 4096 / 16);
-  flowWave.addValue(val);
+  flowWave.addValue(0, val);
 }
 
 void Display::updatePressureWave(float pressure) {
@@ -81,7 +81,7 @@ void Display::updatePressureWave(float pressure) {
   dbSerialPrintln("Pressure waveform value------");
   dbSerialPrintln(val);
 //   pressureWave.addValue(0, millis() % 4096 / 16);
-  flowWave.addValue(val);
+  flowWave.addValue(0, val);
 }
 
 // -----------------
