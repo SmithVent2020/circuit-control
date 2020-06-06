@@ -72,7 +72,6 @@ void Display::updateFlowWave(float flow) {
   uint8_t val = map(flow, FLOW_RANGE_MIN, FLOW_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Flow waveform value------");
   dbSerialPrintln(val);
-//   flowWave.addValue(0, millis() % 4096 / 16);
   flowWave.addValue(0, val);
 }
 
@@ -80,8 +79,7 @@ void Display::updatePressureWave(float pressure) {
   uint8_t val = map(pressure, PRESSURE_RANGE_MIN, PRESSURE_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Pressure waveform value------");
   dbSerialPrintln(val);
-//   pressureWave.addValue(0, millis() % 4096 / 16);
-  flowWave.addValue(0, val);
+  pressureWave.addValue(0, val);
 }
 
 // -----------------
