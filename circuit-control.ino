@@ -50,11 +50,11 @@ float desiredInspFlow;
 bool onButton = true;
 
 //last value vars
-float lastPEEP; //PEEP from last loop
+float lastPeep; //PEEP from last loop
 float lastPeak; //peak pressure from last loop
 float tidalVolume; //measured tidal volume from most recent completed inspiration period
 
-//PID meomory
+AlarmManager alarmMngr;
 
 
 // Flags
@@ -88,26 +88,26 @@ void readSensors(){
 
 }
 
-void checkAlarmRange(float reading, float compareValue, float sensitivity, float highAlarmCode, float lowAlarmCode){ 
-  if(reading > compareValue + sensitivity && !alarmStatus(highAlarmCode)){
-    AlarmManager.activateAlarm(highAlarmCode);
+void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
+  if(reading > compareValue + sensitivity && !alarmMngr.alarmStatus(highAlarmCode)){
+   alarmMngr.activateAlarm(highAlarmCode);
     
-  }else if(reading < compareValue - sensitivity && !alarmStatus(lowAlarmCode)){
-    AlarmManager.activateAlarm(lowAlarmCode);
+  }else if(reading < compareValue - sensitivity && !alarmMngr.alarmStatus(lowAlarmCode)){
+   alarmMngr.activateAlarm(lowAlarmCode);
     
-  }else if(alarmStatus(highAlarmCode){
-    deactivateAlarm(highAlarmCode);
+  }else if(alarmMngr.alarmStatus(highAlarmCode)){
+    alarmMngr.deactivateAlarm(highAlarmCode);
     
-  }else if(alarmStatus(lowAlarmCode){
-    deactivateAlarm(lowAlarmCode);
+  }else if(alarmMngr.alarmStatus(lowAlarmCode)){
+    alarmMngr.deactivateAlarm(lowAlarmCode);
   }
 }
 
 // Check for errors and take appropriate action
 void checkSensorReadings(){
   checkAlarmRange(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
-  checkAlarmRange(expPressureReader.peep(), lastPEEP, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
-  checkAlarmRange(tidalVolume, display.volume(), display.volume()/TIDAL_VOLUME_SENSITIVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
+  checkAlarmRange(expPressureReader.peep(), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
+  checkAlarmRange(tidalVolume, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
 }
 
 void recordBreathValues(){
@@ -198,7 +198,7 @@ void setup() {
   ventMode = VC_MODE;          // for testing VC mode only
   expValve.close();            // close exp valve
   setState(OFF_STATE);         // default to the off state
-  AlarmManager.AlarmManager(); //initialize all alarms to off
+ 
 
   // @TODO: implement startup sequence on display
   // display.start();
@@ -500,7 +500,7 @@ void volumeControlStateMachine(){
       
       if (inspFlowReader.getVolume() >= display.volume() || timeout) { //@debugging add the following back:
         if (timeout) {
-          AlarmManager.activateAlarm(ALARM_TIDAL_LOW); 
+         alarmMngr.activateAlarm(ALARM_TIDAL_LOW); 
         }
 
         if (display.inspHold()) {
@@ -538,7 +538,7 @@ void volumeControlStateMachine(){
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
         if(inspPressureReader.plateau() > PPLAT_MAX){
-          alarmManager.activateAlarm(ALARM_PPLAT_HIGH);
+         alarmMngr.activateAlarm(ALARM_PPLAT_HIGH);
         }
         setState(EXP_STATE);
         beginExpiration();
