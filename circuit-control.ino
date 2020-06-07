@@ -49,6 +49,8 @@ unsigned long targetInspDuration; //desired duration of inspiration
 float desiredInspFlow;
 bool onButton = true;
 
+float tidalVolume = 0;
+
 //PID meomory
 
 
@@ -115,8 +117,8 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.println("EV"); Serial.print("\t");
   Serial.println("pip"); Serial.print("\t");
   Serial.println("pPlat"); Serial.print("\t");
-  Serial.println("PEEP"); 
-  
+  Serial.print("PEEP");  Serial.print("\t");
+  Serial.println("TVi");
 
   Serial.print(millis()); Serial.print("\t");
   Serial.print(inspFlowReader.get()); Serial.print("\t"); //L/min
@@ -128,8 +130,9 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print(expFlowReader.getVolume()); Serial.print("\t");//cc
  
   Serial.print(inspPressureReader.peak());  Serial.print("\t");
-  Serial.print(inspPressureReader.plateau());  Serial.print("\t");
-  Serial.println(expPressureReader.peep());  
+  Serial.print(inspPressureReader.plateau()); Serial.print("\t");
+  Serial.print(expPressureReader.peep());  Serial.print("\t");
+  Serial.println(tidalVolume);
   
 
 }
@@ -342,7 +345,7 @@ void beginHoldInspiration() {
 
 void beginExpiration() {
   //Serial.println("entering exp state"); //uncomment for @debugging
-
+  tidalVolume = inspFlowReader.getVolume();
   display.writeVolumeInsp(inspFlowReader.getVolume()); // record inspiratory tidal Volume
 
   inspValve.endBreath();
