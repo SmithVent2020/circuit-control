@@ -247,11 +247,10 @@ void loop() {
   readSensors();
   displaySensors();        // for @debugging display readings to serial monitor
   
-  if(cycleCount > 5){
+  if(cycleCount > 5){  //@debugging only alarm after first 5 breaths (because we have not yet solved "warm up" issue)
     checkSensorReadings();   // check thresholds against sensor values
     alarmMngr.maintainAlarms();
   }
-  
   
 
   // Graphs just show insp-side sensors
