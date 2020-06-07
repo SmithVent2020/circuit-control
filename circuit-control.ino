@@ -291,7 +291,7 @@ void beginInspiration() {
   }
   else {
     unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
-    targetInspDuration = 105*targetCycleDuration * display.inspPercent() / 10000;  // @debug:  NRH experiment
+    targetInspDuration = 105*targetCycleDuration * display.inspPercent() / 10000;  // NRH:  allowing a bit more time to complete 
     //Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
