@@ -11,7 +11,7 @@ vc_settings_t vc_settings = {
   /* float peak            = */ 35,    // peak pressure (PiP)
   /* int   o2concentration = */ 60,    // O2 concentration, in percent
   /* float sensitivity     = */ 3,     // pressure sensitivity
-  /* bool  inspHoldOn      = */ false  // Do we want to hold inspiration?
+  /* bool  inspHoldOn      = */ true  // Do we want to hold inspiration?
 };
 
 vc_display_t vc_display = {
