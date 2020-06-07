@@ -91,19 +91,20 @@ void readSensors(){
 }
 
 void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
-  if(reading > compareValue + sensitivity && !alarmMngr.alarmStatus(highAlarmCode)){
+  Serial.print("max value ="); Serial.print("\t"); Serial.println(compareValue + sensitivity);
+  if(reading > compareValue + sensitivity ){ //for @debugging add back: && !alarmMngr.alarmStatus(highAlarmCode)
    alarmMngr.activateAlarm(highAlarmCode);
-   Serial.print("Activating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
+   Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(highAlarmCode);
     
-  }else if(reading < compareValue - sensitivity && !alarmMngr.alarmStatus(lowAlarmCode)){
+  }else if(reading < compareValue - sensitivity ){ //@debugging, add back: && !alarmMngr.alarmStatus(lowAlarmCode)
    alarmMngr.activateAlarm(lowAlarmCode);
-   Serial.print("Activating alarmCode:"); Serial.print("\t"); Serial.println(lowAlarmCode);
+   Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(lowAlarmCode);
     
-  }else if(!alarmMngr.alarmStatus(highAlarmCode)){
+  }else if(alarmMngr.alarmStatus(highAlarmCode)){
     alarmMngr.deactivateAlarm(highAlarmCode);
     Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
     
-  }else if(!alarmMngr.alarmStatus(lowAlarmCode)){
+  }else if(alarmMngr.alarmStatus(lowAlarmCode)){
     alarmMngr.deactivateAlarm(lowAlarmCode);
     Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
   }
