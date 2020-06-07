@@ -21,6 +21,7 @@
 #include "O2management.h"
 #include "AlarmManager.h"
 #include "Display.h"
+#include "MeanSmooth.h"
 
 
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
