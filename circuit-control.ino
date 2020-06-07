@@ -55,7 +55,7 @@ float lastPeep; //PEEP from last loop
 float lastPeak; //peak pressure from last loop
 float tidalVolume; //measured tidal volume from most recent completed inspiration period
 
-//initialize alarm and smoothing objects
+//initialize alarm
 AlarmManager alarmMngr;
 
 
@@ -93,15 +93,19 @@ void readSensors(){
 void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
   if(reading > compareValue + sensitivity && !alarmMngr.alarmStatus(highAlarmCode)){
    alarmMngr.activateAlarm(highAlarmCode);
+   Serial.print("Activating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
     
   }else if(reading < compareValue - sensitivity && !alarmMngr.alarmStatus(lowAlarmCode)){
    alarmMngr.activateAlarm(lowAlarmCode);
+   Serial.print("Activating alarmCode:"); Serial.print("\t"); Serial.println(lowAlarmCode);
     
-  }else if(alarmMngr.alarmStatus(highAlarmCode)){
+  }else if(!alarmMngr.alarmStatus(highAlarmCode)){
     alarmMngr.deactivateAlarm(highAlarmCode);
+    Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
     
-  }else if(alarmMngr.alarmStatus(lowAlarmCode)){
+  }else if(!alarmMngr.alarmStatus(lowAlarmCode)){
     alarmMngr.deactivateAlarm(lowAlarmCode);
+    Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
   }
 }
 
