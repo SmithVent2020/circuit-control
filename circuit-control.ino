@@ -202,7 +202,7 @@ void loop() {
   unsigned long tt = millis(); // for @debugging
   readSensors();
   Serial.print("Timing readSensors: ");   // for @debugging
-  Serial.println(millis()-tt); // for @debugging
+  Serial.println(millis()-t); // for @debugging
   displaySensors(); // for @debugging
 
   // handleErrors();        // check thresholds against sensor values
@@ -212,13 +212,13 @@ void loop() {
   display.updateFlowWave(inspFlowReader.get());
   display.updatePressureWave(inspPressureReader.get());
   Serial.print("Timing display updates: ");   // for @debugging
-  Serial.println(millis()-tt); // for @debugging
+  Serial.println(millis()-t); // for @debugging
 
   //manage reservoir refilling
   tt = millis(); // for @debugging
   o2Management(display.oxygen());
   Serial.print("Timing O2managements: ");   // for @debugging
-  Serial.println(millis()-tt); // for @debugging
+  Serial.println(millis()-t); // for @debugging
 
   if (ventMode == PS_MODE) {
     //Serial.println("entering PS mode"); @debugging
@@ -232,7 +232,7 @@ void loop() {
     tt = millis(); // for @debugging
     volumeControlStateMachine();
     Serial.print("Timing volumeControlStateMachine: ");   // for @debugging
-    Serial.println(millis()-tt); // for @debugging
+    Serial.println(millis()-t); // for @debugging
 
     //Serial.println("exiting VC state machine");
   } else {
