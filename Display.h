@@ -9,6 +9,7 @@
 #include "Arduino.h"
 #include "Nextion.h"
 #include "Constants.h"
+#include "MeanSmooth.h"
 
 
 class Display {
@@ -105,6 +106,9 @@ class Display {
 		NexText o2   = NexText( 7, 44, "t17" );
 
 		void showVCSettings();
+
+    MeanSmooth flowSmoother;
+    MeanSmooth pressureSmoother;
 };
 
 extern Display display;
