@@ -75,35 +75,31 @@ class Display {
 		} settings;
 
 		// hold button
-		NexButton hold = NexButton(7, 3, "b2");
+		NexButton hold = NexButton(6, 4, "b2");
+	
+		// switch
+		NexButton lock = NexButton( 6, 63, "sw0");
 
 		// waveform
-		NexWaveform flowWave = NexWaveform(7, 11, "s0");
-		NexWaveform pressureWave = NexWaveform(7, 38, "s1");
+		NexWaveform flowWave = NexWaveform( 6, 12, "s0" );
+		NexWaveform pressureWave = NexWaveform( 6, 37, "s1" );
 
 		// settings
-		NexText VTText  = NexText( 7, 52, "t40" );
-		NexText RRText  = NexText( 7, 55, "t42" );
-		NexText O2Text  = NexText( 7, 58, "t44" );
-		NexText IEText  = NexText( 7, 61, "t46" );
-		NexText SenText = NexText( 7, 63, "t48" );
-
-		// sliders
-		NexSlider VTSlider  = NexSlider( 7, 65, "h0" );
-		NexSlider RRSlider  = NexSlider( 7, 66, "h1" );
-		NexSlider O2Slider  = NexSlider( 7, 67, "h2" );
-		NexSlider IESlider  = NexSlider( 7, 68, "h3" );
-		NexSlider SenSlider = NexSlider( 7, 69, "h4" );
+		NexText VTText  = NexText( 6, 68, "t40" );
+		NexText RRText  = NexText( 6, 69, "t42" );
+		NexText O2Text  = NexText( 6, 70, "t44" );
+		NexText IEText  = NexText( 6, 71, "t3" );
+		NexText SenText = NexText( 6, 72, "t46" );
 
 		// patient data
-		NexText pip  = NexText( 7, 40, "t12" );
-		NexText plat = NexText( 7, 41, "t13" );
-		NexText peep = NexText( 7, 42, "t14" );
-		NexText VTi  = NexText( 7, 43, "t16" );
-		NexText VTe  = NexText( 7, 45, "t18" );
-		NexText mv   = NexText( 7, 46, "t19" );
-		NexText rr   = NexText( 7, 47, "t28" );
-		NexText o2   = NexText( 7, 44, "t17" );
+		NexText pip  = NexText( 6, 39, "t12" );
+		NexText plat = NexText( 6, 40, "t13" );
+		NexText peep = NexText( 6, 41, "t14" );
+		NexText VTi  = NexText( 6, 42, "t16" );
+		NexText VTe  = NexText( 6, 44, "t18" );
+		NexText mv   = NexText( 6, 45, "t19" );
+		NexText rr   = NexText( 6, 46, "t28" );
+		NexText o2   = NexText( 6, 43, "t17" );
 
 		void showVCSettings();
 
