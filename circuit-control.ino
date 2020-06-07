@@ -49,6 +49,9 @@ unsigned long targetInspDuration; //desired duration of inspiration
 float desiredInspFlow;
 bool onButton = true;
 
+float tidalVolumeInsp = 0;
+float tidalVolumeExp = 0;
+
 //PID meomory
 
 
@@ -112,7 +115,12 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print("EP");Serial.print("\t");
   Serial.print("RP");Serial.print("\t");
   Serial.print("IV");Serial.print("\t");
-  Serial.println("EV");
+  Serial.println("EV"); Serial.print("\t");
+  Serial.println("pip"); Serial.print("\t");
+  Serial.println("pPlat"); Serial.print("\t");
+  Serial.print("PEEP");  Serial.print("\t");
+  Serial.println("TVi"); Serial.print("\t");
+  Serial.println("TVe"); 
 
   Serial.print(millis()); Serial.print("\t");
   Serial.print(inspFlowReader.get()); Serial.print("\t"); //L/min
@@ -121,7 +129,14 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print(expPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(reservoirPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(inspFlowReader.getVolume());  Serial.print("\t");//cc
-  Serial.println(expFlowReader.getVolume());   //cc
+  Serial.print(expFlowReader.getVolume()); Serial.print("\t");//cc
+ 
+  Serial.print(inspPressureReader.peak());  Serial.print("\t");
+  Serial.print(inspPressureReader.plateau()); Serial.print("\t");
+  Serial.print(expPressureReader.peep());  Serial.print("\t");
+  Serial.print(tidalVolumeInsp); Serial.print("\t");
+  Serial.println(tidalVolumeExp );  
+  
 
 }
 
@@ -262,7 +277,7 @@ void beginOff() {
 }
 
 void beginInspiration() {
-  //Serial.println("entering insp state"); //uncomment for @debugging
+  //Serial.println("entering insp state"); //uncomment 
   cycleDuration = millis() - cycleTimer;
   cycleTimer = millis();  // the cycle begins at the start of inspiration
   // We could have an inspTimer, but it would be the same as cycleTimer.
@@ -270,6 +285,7 @@ void beginInspiration() {
   //record values from previous breath
   expDuration = cycleTimer - expTimer;
 
+  tidalVolumeExp = expFlowReader.getVolume();
   display.writePeak(inspPressureReader.peak());           // cmH2O
   display.writePlateau(inspPressureReader.plateau());     // cmH2O
   display.writePeep(expPressureReader.peep());            // cmH2O
@@ -291,8 +307,10 @@ void beginInspiration() {
   }
   else {
     unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
+
     targetInspDuration = 105*targetCycleDuration * display.inspPercent() / 10000;  // NRH:  allowing a bit more time to complete 
     //Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
+
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
@@ -337,7 +355,7 @@ void beginHoldInspiration() {
 
 void beginExpiration() {
   //Serial.println("entering exp state"); //uncomment for @debugging
-
+  tidalVolumeInsp = inspFlowReader.getVolume();
   display.writeVolumeInsp(inspFlowReader.getVolume()); // record inspiratory tidal Volume
 
   inspValve.endBreath();
@@ -488,7 +506,7 @@ void volumeControlStateMachine(){
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
 
-        if (display.inspHold()) {
+        if (true /*display.inspHold()*/) { //@debugging
           setState(HOLD_INSP_STATE);
           Serial.print("calling beginHoldInspiration");
           beginHoldInspiration();
