@@ -131,7 +131,9 @@ void checkAlarmRange(float reading, float compareValue, float sensitivity, alarm
 
 // Check for errors and take appropriate action
 void checkSensorReadings(){
-  
+
+  Serial.print("current pip"); Serial.print("\t"); Serial.println(inspPressureReader.peak());
+  Serial.print("last pip"); Serial.print("\t"); Serial.println(lastPeak);
   checkAlarmRangeWithUpdate(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
   checkAlarmRangeWithUpdate(expPressureReader.peep(), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
   checkAlarmRange(tidalVolume, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
