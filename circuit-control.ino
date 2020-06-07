@@ -113,7 +113,7 @@ void checkAlarmRangeWithUpdate(float reading, float &compareValue, float sensiti
       updateComparison = false;   
     } else {
       alarmMngr.deactivateAlarm(lowAlarmCode);
-      Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
+      Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(lowAlarmCode);
     }
   }
 
@@ -246,6 +246,9 @@ void loop() {
   //read all sensors, and check to see if readings are within acceptable ranges
   readSensors();
   displaySensors();        // for @debugging display readings to serial monitor
+  if(cycleCount > 5){
+    checkSensorReadings();   // check thresholds against sensor values
+  }
   checkSensorReadings();   // check thresholds against sensor values
   alarmMngr.maintainAlarms();
 
