@@ -246,11 +246,13 @@ void loop() {
   //read all sensors, and check to see if readings are within acceptable ranges
   readSensors();
   displaySensors();        // for @debugging display readings to serial monitor
+  
   if(cycleCount > 5){
     checkSensorReadings();   // check thresholds against sensor values
+    alarmMngr.maintainAlarms();
   }
   checkSensorReadings();   // check thresholds against sensor values
-  alarmMngr.maintainAlarms();
+  
 
   // Graphs just show insp-side sensors
   display.updateFlowWave(inspFlowReader.get());
