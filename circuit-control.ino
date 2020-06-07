@@ -92,11 +92,11 @@ void readSensors(){
 
 void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
   Serial.print("max value ="); Serial.print("\t"); Serial.println(compareValue + sensitivity);
-  if(reading > compareValue + sensitivity ){ //for @debugging add back: && !alarmMngr.alarmStatus(highAlarmCode)
+  if(reading > compareValue + sensitivity && !alarmMngr.alarmStatus(highAlarmCode) ){ //for @debugging add back: && !alarmMngr.alarmStatus(highAlarmCode)
    alarmMngr.activateAlarm(highAlarmCode);
    Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(highAlarmCode);
     
-  }else if(reading < compareValue - sensitivity ){ //@debugging, add back: && !alarmMngr.alarmStatus(lowAlarmCode)
+  }else if(reading < compareValue - sensitivity  && !alarmMngr.alarmStatus(lowAlarmCode)){ //@debugging, add back: && !alarmMngr.alarmStatus(lowAlarmCode)
    alarmMngr.activateAlarm(lowAlarmCode);
    Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(lowAlarmCode);
     
@@ -227,6 +227,7 @@ void loop() {
   readSensors();
   displaySensors();        // for @debugging display readings to serial monitor
   checkSensorReadings();   // check thresholds against sensor values
+  alarmMngr.maintainAlarms();
 
   // Graphs just show insp-side sensors
   display.updateFlowWave(inspFlowReader.get());
