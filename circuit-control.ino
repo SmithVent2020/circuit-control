@@ -273,7 +273,7 @@ void beginOff() {
 }
 
 void beginInspiration() {
-  //Serial.println("entering insp state"); //uncomment for @debugging
+  //Serial.println("entering insp state"); //uncomment 
   cycleDuration = millis() - cycleTimer;
   cycleTimer = millis();  // the cycle begins at the start of inspiration
   // We could have an inspTimer, but it would be the same as cycleTimer.
@@ -500,7 +500,7 @@ void volumeControlStateMachine(){
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
 
-        if (display.inspHold()) {
+        if (true //display.inspHold()) {
           setState(HOLD_INSP_STATE);
           Serial.print("calling beginHoldInspiration");
           beginHoldInspiration();
