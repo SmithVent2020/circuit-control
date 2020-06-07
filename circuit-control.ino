@@ -51,7 +51,7 @@ float desiredInspFlow;
 bool onButton = true;
 
 //last value vars
-float lastPeep; //PEEP from last loop
+float lastPeep = 0.0/0.0; //PEEP from last loop
 float lastPeak = 0.0/0.0; //peak pressure from last loop
 float tidalVolume = 0.0/0.0; //measured tidal volume from most recent completed inspiration period
 
