@@ -112,7 +112,11 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print("EP");Serial.print("\t");
   Serial.print("RP");Serial.print("\t");
   Serial.print("IV");Serial.print("\t");
-  Serial.println("EV");
+  Serial.println("EV"); Serial.print("\t");
+  Serial.println("pip"); Serial.print("\t");
+  Serial.println("pPlat"); Serial.print("\t");
+  Serial.println("PEEP"); 
+  
 
   Serial.print(millis()); Serial.print("\t");
   Serial.print(inspFlowReader.get()); Serial.print("\t"); //L/min
@@ -121,7 +125,12 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print(expPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(reservoirPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(inspFlowReader.getVolume());  Serial.print("\t");//cc
-  Serial.println(expFlowReader.getVolume());   //cc
+  Serial.print(expFlowReader.getVolume()); Serial.print("\t");//cc
+ 
+  Serial.print(inspPressureReader.peak());  Serial.print("\t");
+  Serial.print(inspPressureReader.plateau());  Serial.print("\t");
+  Serial.println(expPressureReader.peep());  
+  
 
 }
 
@@ -288,7 +297,7 @@ void beginInspiration() {
   else {
     unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
     targetInspDuration = targetCycleDuration * display.inspPercent() / 100;
-    //Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
+    
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
