@@ -17,15 +17,15 @@ Flow::Flow(int pin) {
 void Flow::read() {
   // read the voltage
   long R = analogRead(sensor_pin_);
-  Serial.print("R (flow analog reading"); Serial.print("\t"); Serial.println(R);
+  Serial.print("R (flow analog reading, pin "); Serial.print(sensor_pin_); Serial.print(")\t"); Serial.println(R);
 
   // sensor_read(0.5-4.5 V) maps linearly to flow_rate_ (0-150 SLPM)
   const float Fmax       = 150;                     // max flow in SLPM. (Min flow is 0)
   const long Vsupply     = 5000;                    // voltage supplied, mv
-  const long sensorMin   = zeroed_sensor_min_;      // @debugging: this is what used to be here:1023L*500 / Vsupply;  // Sensor value at 500 mv
-  const long sensorRange = 1023L * 4000 / 5000;     // 4000 mv range (regardless of calibration?)
+  const long sensorMin   = 1023L*500 / Vsupply;     // Sensor value at 500 mv
+  const long sensorRange = 1023L * 4000 / Vsupply;     // 4000 mv range (regardless of calibration?)
   // Convert analog reading to flow rate at standard temperature and pressure
-  flow_rate_ = (R - sensorMin) * (Fmax / sensorRange);
+  flow_rate_ = (R - sensorMin) * (Fmax / sensorRange)-zero_flow_offset_;  // offset is from calibration during zero-flow initialization
 
   //set peak
   current_peak_ = max(current_peak_, flow_rate_);
@@ -62,7 +62,18 @@ void Flow::updateVolume() {
 }
 
 void Flow::calibrateToZero(){
-  zeroed_sensor_min_ = analogRead(sensor_pin_);
+  zero_flow_offset_ = 0;           // set offset to zero
+  float fm[5];
+  for (int i = 0; i < 5; i++) {
+    read();
+    fm[i] = flow_rate_;
+    Serial.print("Calibration, pin ");
+    Serial.print(sensor_pin_);
+    Serial.print(" zero_offset ");
+    Serial.print(flow_rate_);
+    delay(100);
+  }
+  zero_flow_offset_ = (fm[2]+fm[3]+fm[4])/3;  // average last three readings
 }
 // Flow sensors
 Flow inspFlowReader(FLOW_INSP);

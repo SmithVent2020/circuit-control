@@ -9,19 +9,20 @@ static const float LOWER_PRESSURE_THRESHOLD = 703.07;  //cmH2O (10 psi)
 
 
 void o2Management(int O2target){
-
+  Serial.print("O2 target setting: ");
+  Serial.println(O2target);
   if(reservoirPressureReader.get()<= LOWER_PRESSURE_THRESHOLD){
     if(O2target == 21){
-      //Serial.println("opening air and O2 valves (O2% = 21)");
+      Serial.println("opening air and O2 valves (O2% = 21)");
       airValve.open();
     }
     else if(O2target == 60){
-      //Serial.println("opening air and O2 valves, (O2% = 60)");
+      Serial.println("opening air and O2 valves, (O2% = 60)");
       airValve.open();
       oxygenValve.open();
     }
     else if(O2target == 100){
-      //Serial.println("opening air and O2 valves (O2% = 100)");
+      Serial.println("opening air and O2 valves (O2% = 100)");
       oxygenValve.open();
     }
     else{

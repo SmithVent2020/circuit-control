@@ -154,14 +154,11 @@ void valveStates() {
 
 //-------------------Set Up--------------------
 void setup() {
-  delay(10000); // allow 10 seconds for the tester to get the system to get ready @debugging
+  delay(9000); // allow 10 seconds for the tester to get the system to get ready @debugging
   Serial.begin(115200);   // open serial port for @debugging
 
   // initialize screen
   display.init();
-
-  inspFlowReader.calibrateToZero(); //set non-flow analog readings as the 0 in the flow reading functions
-  expFlowReader.calibrateToZero();
 
   // initialize pins with pinMode command
   pinMode(SV1_CONTROL, OUTPUT);
@@ -180,6 +177,7 @@ void setup() {
   pinMode(FLOW_INSP, INPUT);
   pinMode(FLOW_EXP, INPUT);
 
+
   // setup PID controller
   inspValve.initializePID(40, 120, 50); // set output max to 40, output min to 120 and sample time to 50
   inspValve.previousPosition = 65;      // initial value for valve to open according to previous tests (close to desired)
@@ -196,6 +194,10 @@ void setup() {
   expValve.close(); // close exp valve
   Serial.println("closing expValve");
   setState(OFF_STATE);
+
+  // calibrate flow meters -- seems to change when SV4 closes
+  inspFlowReader.calibrateToZero(); //set non-flow analog readings as the 0 in the flow reading functions
+  expFlowReader.calibrateToZero();
 
   // @TODO: implement startup sequence on display
   // display.start();
