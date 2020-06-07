@@ -21,6 +21,7 @@
 #include "O2management.h"
 #include "AlarmManager.h"
 #include "Display.h"
+#include "MeanSmooth.h"
 
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
 unsigned long cycleCount = 0; // number of breaths (including current breath)
