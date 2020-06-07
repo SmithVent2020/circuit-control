@@ -76,14 +76,14 @@ bool AlarmManager::onPriority(alarmPriority level) {
  * Makes specified alarm active
  *
  * Sets alarm status to true and unsilences alarm.
- * If this is the top priority alarm, sets onset timestamp & next tone
+ * Does nothing if alarm is already set
  *
  * No effect if invalid code is supplied
  *
  * @params code -- alarm index
  */
 void AlarmManager::activateAlarm(alarmCode code) {
-  if (isValidCode(code)) {
+  if (isValidCode(code)&&!alarms[code]) {
     alarms[code] = true;
     alarmCode top = topAlarm();
     alarmLED = true;
