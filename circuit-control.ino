@@ -52,8 +52,8 @@ bool onButton = true;
 
 //last value vars
 float lastPeep; //PEEP from last loop
-float lastPeak; //peak pressure from last loop
-float tidalVolume; //measured tidal volume from most recent completed inspiration period
+float lastPeak = 0.0/0.0; //peak pressure from last loop
+float tidalVolume = 0.0/0.0; //measured tidal volume from most recent completed inspiration period
 
 //initialize alarm
 AlarmManager alarmMngr;
@@ -90,32 +90,50 @@ void readSensors(){
 
 }
 
-void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
+void checkAlarmRangeWithUpdate(float reading, float &compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
   Serial.print("max value ="); Serial.print("\t"); Serial.println(compareValue + sensitivity);
-  
-  if(reading > compareValue + sensitivity) ){ //for @debugging add back: && !alarmMngr.alarmStatus(highAlarmCode)
-   alarmMngr.activateAlarm(highAlarmCode);
-   Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(highAlarmCode);
+  bool updateComparison = true;
+
+  // if this is the first reading, just store the value
+  if (!isnan(compareValue)) {
+    // otherwise compare to previous:
+    if(reading > compareValue + sensitivity) { 
+      // abnormally high
+      alarmMngr.activateAlarm(highAlarmCode);
+      Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(highAlarmCode);
+      updateComparison = false;
+    } else {
+      alarmMngr.deactivateAlarm(highAlarmCode);
+      Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
+    }
     
-  }else if(reading < compareValue - sensitivity){ //@debugging, add back: && !alarmMngr.alarmStatus(lowAlarmCode)
-   alarmMngr.activateAlarm(lowAlarmCode);
-   Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(lowAlarmCode);
-    
-  }else if(alarmMngr.alarmStatus(highAlarmCode)){
-    alarmMngr.deactivateAlarm(highAlarmCode);
-    Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
-    
-  }else if(alarmMngr.alarmStatus(lowAlarmCode)){
-    alarmMngr.deactivateAlarm(lowAlarmCode);
-    Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
+    if (reading < compareValue - sensitivity) { 
+      alarmMngr.activateAlarm(lowAlarmCode);
+      Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(lowAlarmCode);   
+      updateComparison = false;   
+    } else {
+      alarmMngr.deactivateAlarm(lowAlarmCode);
+      Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
+    }
   }
+
+  // remember value for next comparison, if we're not already abnormal
+  if (updateComparison) {
+    compareValue = reading;
+  }
+}
+
+// check against a value that doesn't need to be stored -- call above with dummy variable
+void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
+  float dummyCompareValue = compareValue;
+  checkAlarmRangeWithUpdate(reading, dummyCompareValue, sensitivity, highAlarmCode, lowAlarmCode);
 }
 
 // Check for errors and take appropriate action
 void checkSensorReadings(){
   
-  checkAlarmRange(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
-  checkAlarmRange(expPressureReader.peep(), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
+  checkAlarmRangeWithUpdate(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
+  checkAlarmRangeWithUpdate(expPressureReader.peep(), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
   checkAlarmRange(tidalVolume, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
 }
 
