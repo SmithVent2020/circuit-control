@@ -55,8 +55,12 @@ float lastPeep; //PEEP from last loop
 float lastPeak; //peak pressure from last loop
 float tidalVolume; //measured tidal volume from most recent completed inspiration period
 
+//initialize alarm and smoothing objects
 AlarmManager alarmMngr;
-
+MeanSmooth inspFlowSmoother;
+MeanSmooth inspPressureSmoother;
+MeanSmooth expPressureSmoother;
+MeanSmooth tidalVolumeSmoother;
 
 // Flags
 bool DEBUG = false;
@@ -106,9 +110,9 @@ void checkAlarmRange(float reading, float compareValue, float sensitivity, alarm
 
 // Check for errors and take appropriate action
 void checkSensorReadings(){
-  checkAlarmRange(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
-  checkAlarmRange(expPressureReader.peep(), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
-  checkAlarmRange(tidalVolume, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
+  checkAlarmRange(inspPressureSmoother.smooth(inspPressureReader.peak()), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
+  checkAlarmRange(expPressureSmoother.smooth(expPressureReader.peep()), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
+  checkAlarmRange(tidalVolumeSmoother.smooth(tidalVolume), display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
 }
 
 void recordBreathValues(){
