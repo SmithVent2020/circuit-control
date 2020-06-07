@@ -184,13 +184,17 @@ void setup() {
   inspValve.initializePID(40, 120, 50); // set output max to 40, output min to 120 and sample time to 50
   inspValve.previousPosition = 65;      // initial value for valve to open according to previous tests (close to desired)
 
+  // warm up SV3 valve
+  analogWrite(SV3_CONTROL, 255);
+  delay(35);
+  analogWrite(SV3_CONTROL, 0);
+
   // initialize timers:
   // targetExpDuration = (100-vc_settings.inspPercent)*vc_settings.bpm/200; // begin the targeExpDuration at half what the entire expiratory cycle (exp, PEEP pause, and exp hold) will take
 
   ventMode = VC_MODE; // for testing VC mode only
   expValve.close(); // close exp valve
   Serial.println("closing expValve");
-  // digitalWrite(SV4_CONTROL, HIGH); // @debugging to see if SV4 is being controlled correctly
   setState(OFF_STATE);
 
   // @TODO: implement startup sequence on display
@@ -303,8 +307,10 @@ void beginInspiration() {
   }
   else {
     unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
-    targetInspDuration = targetCycleDuration * display.inspPercent() / 100;
-    
+
+    targetInspDuration = 105*targetCycleDuration * display.inspPercent() / 10000;  // NRH:  allowing a bit more time to complete 
+    //Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
+
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
