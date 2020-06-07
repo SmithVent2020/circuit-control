@@ -251,7 +251,7 @@ void loop() {
     checkSensorReadings();   // check thresholds against sensor values
     alarmMngr.maintainAlarms();
   }
-  checkSensorReadings();   // check thresholds against sensor values
+  
   
 
   // Graphs just show insp-side sensors
