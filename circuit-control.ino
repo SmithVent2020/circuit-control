@@ -553,7 +553,7 @@ void volumeControlStateMachine(){
 
     case EXP_STATE:
       Serial.println("in exp state");
-      display.updateFlowWave(expFlowReader.get());
+      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
       //Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime + EXP_TIME_SENSITIVITY); //@debugging
@@ -566,7 +566,7 @@ void volumeControlStateMachine(){
 
     case PEEP_PAUSE_STATE:
       Serial.println("in PEEP state");
-      display.updateFlowWave(expFlowReader.get());
+      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
       //Serial.print("target PEEP pause"); Serial.print("\t"); Serial.println(millis() + MIN_PEEP_PAUSE); //@debugging
@@ -581,7 +581,7 @@ void volumeControlStateMachine(){
 
     case HOLD_EXP_STATE: {
       Serial.println("in exp Hold state");
-      display.updateFlowWave(expFlowReader.get());
+      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
 
