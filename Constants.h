@@ -28,7 +28,7 @@ enum VentMode {
 
 // Timing interval settings (all values in milliseconds)
 const unsigned long LOOP_PERIOD = 30;         // The period of the control loop
-const unsigned long HOLD_INSP_DURATION = 500; // Interval to pause after inhalation
+const unsigned long HOLD_INSP_DURATION = 700; // Interval to pause after inhalation
 const unsigned long MIN_PEEP_PAUSE = 50;      // Interval to pause after exhalation / before watching for an assisted inhalation
 const unsigned long MAX_EXP_DURATION = 1000;  // Maximum exhale duration (ms)
 
@@ -94,7 +94,7 @@ const unsigned long RISE_TIME = 200;       // max time (ms) it takes to reach Pi
 
 // Safety settings
 const float MAX_PRESSURE = 40.0;        // Trigger high pressure alarm
-const float SENSITIVITY_MIN = 0.5;      // acceptable margin of error in pressure (in cmH2O)
+const float SENSITIVITY_MIN = 1;      // acceptable margin of error in pressure (in cmH2O)
 const float SENSITIVITY_MAX = 5.0;      
 const float SENSITIVITY_RES = 0.5;
 const float EXP_TIME_SENSITIVITY = 400; // in ms, the time "wiggle room" we allow for the patient to exhail 80% of air in VC mode 

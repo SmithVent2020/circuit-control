@@ -27,6 +27,7 @@ Display::Display() {
   dbSerialPrintln(settings.bpm);
 
   turnOff = false;
+  locked = false;
 }
 
 void Display::init() {
@@ -35,30 +36,16 @@ void Display::init() {
   // dbSerial is for debugging screen
   dbSerialPrintln("setup done");
 
-  // show default values for settings
-  showVCSettings();
+  hold.attachPop(holdPopCallback, &hold);
+  lock.attachPop(lockPopCallback, &lock);
+
+  nex_listen_list[0] = &hold;
+  nex_listen_list[1] = &lock;
+  nex_listen_list[2] = NULL; 
 }
 
-void Display::showVCSettings() {
-  itoa(settings.volume, buffer, 10); 
-  dbSerialPrintln(buffer);
-  VTText.setText(buffer);
-
-  itoa(settings.bpm, buffer, 10);
-  dbSerialPrintln(buffer);
-  RRText.setText(buffer);
-
-  itoa(settings.o2, buffer, 10);
-  O2Text.setText(buffer);
-
-  itoa(settings.ie[0], buffer, 10);
-  itoa(settings.ie[1], buffer2, 10);
-  strcat(buffer, ":");
-  strcat(buffer, buffer2);
-  IEText.setText(buffer);
-
-  dtostrf(settings.sensitivity, 3, 1, buffer);
-  SenText.setText(buffer);
+void Display::listen() {
+  nexLoop(nex_listen_list);
 }
 
 void Display::resetInspHold() {
@@ -72,14 +59,14 @@ void Display::updateFlowWave(float flow) {
   uint8_t val = map(flow, FLOW_RANGE_MIN, FLOW_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Flow waveform value------");
   dbSerialPrintln(val);
-  flowWave.addValue(0, val);
+  flowWave.addValue(0, flowSmoother.smooth(val));
 }
 
 void Display::updatePressureWave(float pressure) {
   uint8_t val = map(pressure, PRESSURE_RANGE_MIN, PRESSURE_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
   dbSerialPrintln("Pressure waveform value------");
   dbSerialPrintln(val);
-  pressureWave.addValue(0, val);
+  pressureWave.addValue(0, pressureSmoother.smooth(val));
 }
 
 // -----------------
@@ -123,6 +110,48 @@ void Display::writeBPM(float bpm) {
 void Display::writeO2(int oxygen) {
   dtostrf(oxygen, 4, 1, buffer);
   o2.setText(buffer);
+}
+
+void Display::updateValues() {
+  VTText.getText(buffer, sizeof(buffer));
+  settings.volume = atoi(buffer);
+  dbSerialPrintln(settings.volume);
+
+  RRText.getText(buffer, sizeof(buffer));
+  settings.bpm = atoi(buffer);
+  dbSerialPrintln(settings.bpm);
+
+  O2Text.getText(buffer, sizeof(buffer));
+  settings.o2 = atoi(buffer);
+  dbSerialPrintln(settings.o2);
+
+  IEText.getText(buffer, sizeof(buffer));
+  sscanf(buffer, "%d, %d", &settings.ie[0], settings.ie[1]);
+
+  SenText.getText(buffer, sizeof(buffer));
+  settings.sensitivity = atof(buffer);
+  dbSerialPrintln(settings.sensitivity);
+}
+
+void holdPopCallback(void *ptr) {
+  dbSerialPrintln("Callback");
+  dbSerialPrint("ptr=");
+  dbSerialPrintln((uint32_t)ptr);
+
+  display.setInspHold();
+}
+
+void lockPopCallback(void *ptr) {
+  dbSerialPrintln("Callback");
+  dbSerialPrint("ptr=");
+  dbSerialPrintln((uint32_t)ptr);
+
+  if(display.locked == false) {
+    display.locked = true;
+    display.updateValues();
+  } else {
+    display.locked = false;
+  }
 }
 
 

@@ -50,13 +50,17 @@ unsigned long targetInspDuration; //desired duration of inspiration
 float desiredInspFlow;
 bool onButton = true;
 
-//last value vars
+
+float tidalVolumeInsp = 0.0;
+float tidalVolumeExp = 0.0;
+
 float lastPeep = 0.0/0.0; //PEEP from last loop
 float lastPeak = 0.0/0.0; //peak pressure from last loop
-float tidalVolumeInsp = 0.0/0.0; //measured tidal volume from most recent completed inspiration period
+
 
 //initialize alarm
 AlarmManager alarmMngr;
+
 
 
 // Flags
@@ -166,7 +170,12 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print("EP");Serial.print("\t");
   Serial.print("RP");Serial.print("\t");
   Serial.print("IV");Serial.print("\t");
-  Serial.println("EV");
+  Serial.println("EV"); Serial.print("\t");
+  Serial.println("pip"); Serial.print("\t");
+  Serial.println("pPlat"); Serial.print("\t");
+  Serial.print("PEEP");  Serial.print("\t");
+  Serial.println("TVi"); Serial.print("\t");
+  Serial.println("TVe"); 
 
   Serial.print(millis()); Serial.print("\t");
   Serial.print(inspFlowReader.get()); Serial.print("\t"); //L/min
@@ -175,7 +184,14 @@ void displaySensors(){ //for @debugging and testing purposes
   Serial.print(expPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(reservoirPressureReader.get()); Serial.print("\t"); //cmH2O
   Serial.print(inspFlowReader.getVolume());  Serial.print("\t");//cc
-  Serial.println(expFlowReader.getVolume());   //cc
+  Serial.print(expFlowReader.getVolume()); Serial.print("\t");//cc
+ 
+  Serial.print(inspPressureReader.peak());  Serial.print("\t");
+  Serial.print(inspPressureReader.plateau()); Serial.print("\t");
+  Serial.print(expPressureReader.peep());  Serial.print("\t");
+  Serial.print(tidalVolumeInsp); Serial.print("\t");
+  Serial.println(tidalVolumeExp );  
+  
 
 }
 
@@ -193,14 +209,11 @@ void valveStates() {
 
 //-------------------Set Up--------------------
 void setup() {
-  delay(10000); // allow 10 seconds for the tester to get the system to get ready @debugging
+  delay(9000); // allow 10 seconds for the tester to get the system to get ready @debugging
   Serial.begin(115200);   // open serial port for @debugging
 
   // initialize screen
   display.init();
-
-  inspFlowReader.calibrateToZero(); //set non-flow analog readings as the 0 in the flow reading functions
-  expFlowReader.calibrateToZero();
 
   // initialize pins with pinMode command
   pinMode(SV1_CONTROL, OUTPUT);
@@ -219,15 +232,27 @@ void setup() {
   pinMode(FLOW_INSP, INPUT);
   pinMode(FLOW_EXP, INPUT);
 
+
   // setup PID controller
   inspValve.initializePID(40, 120, 50); // set output max to 40, output min to 120 and sample time to 50
   inspValve.previousPosition = 65;      // initial value for valve to open according to previous tests (close to desired)
 
-  // initialize  modes, valve positions, and alarms
-  ventMode = VC_MODE;          // for testing VC mode only
-  expValve.close();            // close exp valve
-  setState(OFF_STATE);         // default to the off state
- 
+  // warm up SV3 valve
+  analogWrite(SV3_CONTROL, 255);
+  delay(35);
+  analogWrite(SV3_CONTROL, 0);
+
+  // initialize timers:
+  // targetExpDuration = (100-vc_settings.inspPercent)*vc_settings.bpm/200; // begin the targeExpDuration at half what the entire expiratory cycle (exp, PEEP pause, and exp hold) will take
+
+  ventMode = VC_MODE; // for testing VC mode only
+  expValve.close(); // close exp valve
+  Serial.println("closing expValve");
+  setState(OFF_STATE);
+
+  // calibrate flow meters -- seems to change when SV4 closes
+  inspFlowReader.calibrateToZero(); //set non-flow analog readings as the 0 in the flow reading functions
+  expFlowReader.calibrateToZero();
 
   // @TODO: implement startup sequence on display
   // display.start();
@@ -239,6 +264,8 @@ void setup() {
 // Run forever
 void loop() {
   // All States
+  display.listen();
+  
   if (display.isTurnedOff()) {
     setState(OFF_STATE);
   }
@@ -255,8 +282,6 @@ void loop() {
   }
   
 
-  // Graphs just show insp-side sensors
-  display.updateFlowWave(inspFlowReader.get());
   display.updatePressureWave(inspPressureReader.get());
 
   //manage reservoir refilling
@@ -313,13 +338,15 @@ void beginOff() {
 }
 
 void beginInspiration() {
-  //Serial.println("entering insp state"); //uncomment for @debugging
+  //Serial.println("entering insp state"); //uncomment 
   cycleDuration = millis() - cycleTimer;
   cycleTimer = millis();  // the cycle begins at the start of inspiration
   // We could have an inspTimer, but it would be the same as cycleTimer.
 
   //record values from previous breath
   expDuration = cycleTimer - expTimer;
+
+  tidalVolumeExp = expFlowReader.getVolume();
   
   display.writePeak(inspPressureReader.peak());           // cmH2O
   display.writePlateau(inspPressureReader.plateau());     // cmH2O
@@ -343,7 +370,10 @@ void beginInspiration() {
   }
   else {
     unsigned long targetCycleDuration = 60000UL / display.bpm(); // ms from start of cycle to end of inspiration
-    targetInspDuration = targetCycleDuration * display.inspPercent() / 100;
+
+    targetInspDuration = 105*targetCycleDuration * display.inspPercent() / 10000;  // NRH:  allowing a bit more time to complete 
+    //Serial.print("targetInspDuration:"); Serial.print("\t"); Serial.println(targetInspDuration);
+
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
@@ -528,6 +558,7 @@ void volumeControlStateMachine(){
     case INSP_STATE: {
       Serial.println("in insp state"); //@debugging
       
+      display.updateFlowWave(inspFlowReader.get());
       inspFlowReader.updateVolume();
       bool timeout = (millis() >= targetInspEndTime + INSP_TIME_SENSITIVITY);
       
@@ -536,9 +567,10 @@ void volumeControlStateMachine(){
          alarmMngr.activateAlarm(ALARM_TIDAL_LOW); 
         }
 
-        if (display.inspHold()) {
+        if (display.inspHold()) { //@debugging
           setState(HOLD_INSP_STATE);
           Serial.print("calling beginHoldInspiration");
+          display.resetInspHold();
           beginHoldInspiration();
         }
         else {
@@ -559,6 +591,7 @@ void volumeControlStateMachine(){
 
     case INSP_SUSTAIN_STATE:
       Serial.println("in insp sustain state");
+      display.updateFlowWave(inspFlowReader.get());
       // Should never get here in volume control mode.  In the unlikely event
       // that we find ourselves here, switch immediately to expiration state.
       setState(EXP_STATE);
@@ -567,6 +600,7 @@ void volumeControlStateMachine(){
 
     case HOLD_INSP_STATE:
       Serial.println("in hold insp state");
+      display.updateFlowWave(inspFlowReader.get());
       //Serial.print("inspHoldTimer"); Serial.print("\t"); Serial.println(millis() - inspHoldTimer); //@debugging
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
@@ -580,6 +614,7 @@ void volumeControlStateMachine(){
 
     case EXP_STATE:
       Serial.println("in exp state");
+      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
       //Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime + EXP_TIME_SENSITIVITY); //@debugging
@@ -592,6 +627,7 @@ void volumeControlStateMachine(){
 
     case PEEP_PAUSE_STATE:
       Serial.println("in PEEP state");
+      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
       //Serial.print("target PEEP pause"); Serial.print("\t"); Serial.println(millis() + MIN_PEEP_PAUSE); //@debugging
@@ -606,6 +642,7 @@ void volumeControlStateMachine(){
 
     case HOLD_EXP_STATE: {
       Serial.println("in exp Hold state");
+      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
 
@@ -616,7 +653,7 @@ void volumeControlStateMachine(){
       //Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       //Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
 
-      if (timeout) { //@debugging add back with real patient: patientTriggered ||
+      if ( timeout) { //@debugging add back with real patient: patientTriggered ||
         if (!patientTriggered){
 
         }
