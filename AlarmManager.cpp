@@ -93,7 +93,7 @@ void AlarmManager::activateAlarm(alarmCode code) {
       // @TODO: Shouldn't turning on any alarm at same or higher priority unsilence alarms?
       alarmSounding = true;
       beginAlarm();
-      display.showAlarm(alarmText[code]);
+      display.showAlarm(alarmText[code],getAlarmPriority(code));
     }
   }
 }
