@@ -652,7 +652,7 @@ void volumeControlStateMachine(){
       //Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       //Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
 
-      if (patientTriggered || timeout) { //@debugging add back with real patient: 
+      if (timeout) { //@debugging add back with real patient: patientTriggered ||
 
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
