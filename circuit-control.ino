@@ -609,7 +609,7 @@ void volumeControlStateMachine(){
          alarmMgr.activateAlarm(ALARM_PPLAT_HIGH);
          Serial.println("Activating PPlat High Alarm");
          Serial.print("PPlat ="); Serial.print("\t"); Serial.println(inspPressureReader.plateau());
-        }else if(alarmMgr.alarmStatus(){
+        }else if(alarmMgr.alarmStatus(ALARM_PPLAT_HIGH)){
           alarmMgr.deactivateAlarm(ALARM_PPLAT_HIGH);
         }
         setState(EXP_STATE);
