@@ -47,6 +47,27 @@ enum alarmPriority {
   NO_ALARM       // 3
 };
 
+// text for display screen -- should objectify this eventually
+static const char *alarmText[N_ALARMS] = {
+  "Ventilation Shutdown",
+  "Apnea Detected",
+  "Power Failure",
+  "Air Supply Disconnected",
+  "Oxygen Supply Disconnected",
+  "Low Battery",
+  "Pressure Sensor Failure (Reservoir)",
+  "Pressure Sensor Failure (Inspiration)",
+  "Pressure Sensor Failure (Expiration)",
+  "Excess Inspiratory Pressure",
+  "High PEEP",
+  "Low PEEP",
+  "Low Inspiratory Pressure",
+  "Tidal Volume High",
+  "Plateau Pressure High",
+  "Tidal Volume Low",
+  "Oxygen Sensor Failure" 
+};
+
 class AlarmManager {
   public:
     AlarmManager();                         // constructor
