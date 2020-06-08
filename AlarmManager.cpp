@@ -114,6 +114,7 @@ void AlarmManager::deactivateAlarm(alarmCode code) {
   if (alarmStatus(code) == true) {
     alarms[code] = false;
     quellAlarm(code);  // cease LED display and tone for deactivated alarm
+    display.stopAlarm();
     alarmCode top = topAlarm();  // check for new top alarm
     if (top == ALARM_NONE) {
       // no alarms remain
