@@ -53,7 +53,7 @@ bool onButton = true;
 //last value vars
 float lastPeep = 0.0/0.0; //PEEP from last loop
 float lastPeak = 0.0/0.0; //peak pressure from last loop
-float tidalVolume = 0.0/0.0; //measured tidal volume from most recent completed inspiration period
+float tidalVolumeInsp = 0.0/0.0; //measured tidal volume from most recent completed inspiration period
 
 //initialize alarm
 AlarmManager alarmMngr;
@@ -136,7 +136,7 @@ void checkSensorReadings(){
   Serial.print("last pip"); Serial.print("\t"); Serial.println(lastPeak);
   checkAlarmRangeWithUpdate(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
   //checkAlarmRangeWithUpdate(expPressureReader.peep(), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
-  checkAlarmRange(tidalVolume, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
+  checkAlarmRange(tidalVolumeInsp, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
 }
 
 void recordBreathValues(){
@@ -388,8 +388,8 @@ void beginExpiration() {
    
   inspPressureReader.setPeakAndReset(); //cmH2O
 
-  tidalVolume = inspFlowReader.getVolume(); //set last tidal volume
-  display.writeVolumeInsp(tidalVolume);     // display measured inspiratory tidal Volume
+  tidalVolumeInsp = inspFlowReader.getVolume(); //set last tidal volume
+  display.writeVolumeInsp(tidalVolumeInsp);     // display measured inspiratory tidal Volume
   
   inspValve.endBreath();
   expValve.open();
