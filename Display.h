@@ -27,6 +27,10 @@ class Display {
 		// update setting values based on user input
 		void updateValues();
 
+		// show alarm
+		void showAlarm(const char *buffer, int priority);
+		void stopAlarm();
+
 		// update graphs
 		void updateFlowWave(float currentFlow);
 		void updatePressureWave(float currentPressure);
@@ -91,6 +95,10 @@ class Display {
 		NexWaveform flowWave = NexWaveform( 6, 12, "s0" );
 		NexWaveform pressureWave = NexWaveform( 6, 37, "s1" );
 
+		// Alarm stuff
+		NexText banner = NexText( 6, 1, "t1");
+		NexButton bell = NexButton( 6, 67, "b6");
+
 		// settings
 		NexText VTText  = NexText( 6, 68, "t40" );
 		NexText RRText  = NexText( 6, 69, "t42" );
@@ -116,6 +124,7 @@ class Display {
 
 void holdPopCallback(void *ptr);
 void lockPopCallback(void *ptr);
+void bellPushCallback(void *ptr);
 
 extern Display display;
 
