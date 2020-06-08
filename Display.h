@@ -22,8 +22,12 @@ class Display {
 		void start();
 
 		// nexLoop to listen for button events and update values
-		void loop();
+		void listen();
 
+		// update setting values based on user input
+		void updateValues();
+
+		// update graphs
 		void updateFlowWave(float currentFlow);
 		void updatePressureWave(float currentPressure);
 
@@ -38,6 +42,7 @@ class Display {
 		void writeO2(int o2);
 
 		// reset inspiratory hold on screen after end of cycle
+		void setInspHold() { settings.inspHold = true; }
 		void resetInspHold();
 
 		// returns true if user clicked on standby and confirmed 
@@ -58,9 +63,11 @@ class Display {
 		float cycleOff() const { return settings.cycleOff; }
 		float riseTime() const { return settings.riseTime; }
 
+		bool locked;
+
 	private:
 		bool turnOff;
-
+		
 		struct userSettings {
 			int   o2;          // O2 concentration
 			float sensitivity; // pressure sensitivity
@@ -75,8 +82,8 @@ class Display {
 		} settings;
 
 		// hold button
-		NexButton hold = NexButton(6, 4, "b2");
-	
+		NexButton hold = NexButton( 6, 4, "b2" );
+
 		// switch
 		NexButton lock = NexButton( 6, 63, "sw0");
 
@@ -101,11 +108,14 @@ class Display {
 		NexText rr   = NexText( 6, 46, "t28" );
 		NexText o2   = NexText( 6, 43, "t17" );
 
-		void showVCSettings();
+		NexTouch *nex_listen_list[3];
 
-    MeanSmooth flowSmoother;
+		MeanSmooth flowSmoother;
     MeanSmooth pressureSmoother;
 };
+
+void holdPopCallback(void *ptr);
+void lockPopCallback(void *ptr);
 
 extern Display display;
 

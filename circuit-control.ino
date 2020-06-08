@@ -209,6 +209,8 @@ void setup() {
 // Run forever
 void loop() {
   // All States
+  display.listen();
+  
   if (display.isTurnedOff()) {
     setState(OFF_STATE);
   }
