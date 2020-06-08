@@ -28,7 +28,7 @@ unsigned long cycleCount = 0; // number of breaths (including current breath)
 
 float targetExpVolume    = 0; // minimum target volume for expiration
 
-// Target time parameters (in milliseconds). Calculated, not measured.
+// Target time parametaers (in milliseconds). Calculated, not measured.
 unsigned long targetCycleEndTime;     // desired time at end of breath (at end of Hold exp state)
 unsigned long targetInspEndTime;      // desired time for end of INSP_STATE
 unsigned long targetExpDuration;      // Desired length of EXP_STATE (VC mode only)
@@ -58,8 +58,7 @@ float lastPeep = 0.0/0.0; //PEEP from last loop
 float lastPeak = 0.0/0.0; //peak pressure from last loop
 
 
-//initialize alarm
-AlarmManager alarmMngr;
+
 
 
 
@@ -103,20 +102,20 @@ void checkAlarmRangeWithUpdate(float reading, float &compareValue, float sensiti
     // otherwise compare to previous:
     if(reading > compareValue + sensitivity) { 
       // abnormally high
-      alarmMngr.activateAlarm(highAlarmCode);
+      alarmMgr.activateAlarm(highAlarmCode);
       Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(highAlarmCode);
       updateComparison = false;
     } else {
-      alarmMngr.deactivateAlarm(highAlarmCode);
+      alarmMgr.deactivateAlarm(highAlarmCode);
       Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
     }
     
     if (reading < compareValue - sensitivity) { 
-      alarmMngr.activateAlarm(lowAlarmCode);
+      alarmMgr.activateAlarm(lowAlarmCode);
       Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(lowAlarmCode);   
       updateComparison = false;   
     } else {
-      alarmMngr.deactivateAlarm(lowAlarmCode);
+      alarmMgr.deactivateAlarm(lowAlarmCode);
       Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(lowAlarmCode);
     }
   }
@@ -278,7 +277,7 @@ void loop() {
   
   if(cycleCount > 5){  //@debugging only alarm after first 5 breaths (because we have not yet solved "warm up" issue)
     checkSensorReadings();   // check thresholds against sensor values
-    alarmMngr.maintainAlarms();
+    alarmMgr.maintainAlarms();
   }
   
 
@@ -564,7 +563,7 @@ void volumeControlStateMachine(){
       
       if (inspFlowReader.getVolume() >= display.volume() || timeout) { //@debugging add the following back:
         if (timeout) {
-         alarmMngr.activateAlarm(ALARM_TIDAL_LOW); 
+         alarmMgr.activateAlarm(ALARM_TIDAL_LOW); 
         }
 
         if (display.inspHold()) { //@debugging
@@ -605,7 +604,7 @@ void volumeControlStateMachine(){
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
         if(inspPressureReader.plateau() > PPLAT_MAX){
-         alarmMngr.activateAlarm(ALARM_PPLAT_HIGH);
+         alarmMgr.activateAlarm(ALARM_PPLAT_HIGH);
         }
         setState(EXP_STATE);
         beginExpiration();
