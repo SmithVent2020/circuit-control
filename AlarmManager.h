@@ -17,15 +17,16 @@ enum alarmCode {
   ALARM_P1SENSOR_FAIL, // 6 - HIGH
   ALARM_P2SENSOR_FAIL, // 7 - HIGH
   ALARM_P3SENSOR_FAIL, // 8 - HIGH
-  ALARM_INSP_HIGH,     // 9 - HIGH
-  ALARM_PEEP_HIGH,     // 10 - MEDIUM
-  ALARM_PEEP_LOW,      // 11 - MEDIUM
-  ALARM_INSP_LOW,      // 12 - MEDIUM
-  ALARM_TIDAL_HIGH,    // 13 - MEDIUM
-  ALARM_TIDAL_LOW,     // 14 - LOW
-  ALARM_O2SENSOR_FAIL, // 15 - LOW
-  N_ALARMS,            // 16 Number of alarms
-  ALARM_NONE,          // 17
+  ALARM_INSP_HIGH,     // 9 - HIGH    insp pressure implemented
+  ALARM_PEEP_HIGH,     // 10 - MEDIUM               implemented
+  ALARM_PEEP_LOW,      // 11 - MEDIUM               implemented
+  ALARM_INSP_LOW,      // 12 - MEDIUM insp pressure implemented
+  ALARM_TIDAL_HIGH,    // 13 - MEDIUM               implemented
+  ALARM_PPLAT_HIGH,    // 14 - MEDIUM
+  ALARM_TIDAL_LOW,     // 15 - LOW                  implemented 
+  ALARM_O2SENSOR_FAIL, // 16 - LOW    
+  N_ALARMS,            // 17 Number of alarms
+  ALARM_NONE,          // 18
 
   FIRST_ALARM = 0,
 

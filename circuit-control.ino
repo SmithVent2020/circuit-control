@@ -22,6 +22,7 @@
 #include "AlarmManager.h"
 #include "Display.h"
 
+
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
 unsigned long cycleCount = 0; // number of breaths (including current breath)
 
@@ -49,10 +50,17 @@ unsigned long targetInspDuration; //desired duration of inspiration
 float desiredInspFlow;
 bool onButton = true;
 
-float tidalVolumeInsp = 0;
-float tidalVolumeExp = 0;
 
-//PID meomory
+float tidalVolumeInsp = 0.0;
+float tidalVolumeExp = 0.0;
+
+float lastPeep = 0.0/0.0; //PEEP from last loop
+float lastPeak = 0.0/0.0; //peak pressure from last loop
+
+
+//initialize alarm
+AlarmManager alarmMngr;
+
 
 
 // Flags
@@ -71,8 +79,6 @@ void setState(States newState);
 // Calculates the waveform parameters from the user inputs
 void calculateWaveform();
 
-// Check for errors and take appropriate action
-void handleErrors();
 
 // Helper function that gets all sensor readings
 void readSensors(){
@@ -86,6 +92,55 @@ void readSensors(){
   expFlowReader.read();  //L/min
   expPressureReader.read(); //cmH2O
 
+}
+
+void checkAlarmRangeWithUpdate(float reading, float &compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
+  Serial.print("max value ="); Serial.print("\t"); Serial.println(compareValue + sensitivity);
+  bool updateComparison = true;
+
+  // if this is the first reading, just store the value
+  if (!isnan(compareValue)) {
+    // otherwise compare to previous:
+    if(reading > compareValue + sensitivity) { 
+      // abnormally high
+      alarmMngr.activateAlarm(highAlarmCode);
+      Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(highAlarmCode);
+      updateComparison = false;
+    } else {
+      alarmMngr.deactivateAlarm(highAlarmCode);
+      Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(highAlarmCode);
+    }
+    
+    if (reading < compareValue - sensitivity) { 
+      alarmMngr.activateAlarm(lowAlarmCode);
+      Serial.print("Activating alarmCodes:"); Serial.print("\t"); Serial.println(lowAlarmCode);   
+      updateComparison = false;   
+    } else {
+      alarmMngr.deactivateAlarm(lowAlarmCode);
+      Serial.print("deactivating alarmCode:"); Serial.print("\t"); Serial.println(lowAlarmCode);
+    }
+  }
+
+  // remember value for next comparison, if we're not already abnormal
+  if (updateComparison) {
+    compareValue = reading;
+  }
+}
+
+// check against a value that doesn't need to be stored -- call above with dummy variable
+void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode){ 
+  float dummyCompareValue = compareValue;
+  checkAlarmRangeWithUpdate(reading, dummyCompareValue, sensitivity, highAlarmCode, lowAlarmCode);
+}
+
+// Check for errors and take appropriate action
+void checkSensorReadings(){
+
+  Serial.print("current pip"); Serial.print("\t"); Serial.println(inspPressureReader.peak());
+  Serial.print("last pip"); Serial.print("\t"); Serial.println(lastPeak);
+  checkAlarmRangeWithUpdate(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
+  //checkAlarmRangeWithUpdate(expPressureReader.peep(), lastPeep, PEEP_SENSITIVITY, ALARM_PEEP_HIGH,  ALARM_PEEP_LOW);
+  checkAlarmRange(tidalVolumeInsp, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
 }
 
 void recordBreathValues(){
@@ -217,11 +272,15 @@ void loop() {
 
   // @TODO: alarm maintenance
 
-  //read all the pressure and flow sensors
+  //read all sensors, and check to see if readings are within acceptable ranges
   readSensors();
-  displaySensors(); // for @debugging
-
-  // handleErrors();        // check thresholds against sensor values
+  displaySensors();        // for @debugging display readings to serial monitor
+  
+  if(cycleCount > 5){  //@debugging only alarm after first 5 breaths (because we have not yet solved "warm up" issue)
+    checkSensorReadings();   // check thresholds against sensor values
+    alarmMngr.maintainAlarms();
+  }
+  
 
   display.updatePressureWave(inspPressureReader.get());
 
@@ -288,6 +347,7 @@ void beginInspiration() {
   expDuration = cycleTimer - expTimer;
 
   tidalVolumeExp = expFlowReader.getVolume();
+  
   display.writePeak(inspPressureReader.peak());           // cmH2O
   display.writePlateau(inspPressureReader.plateau());     // cmH2O
   display.writePeep(expPressureReader.peep());            // cmH2O
@@ -296,6 +356,7 @@ void beginInspiration() {
   display.writeBPM(60000.0/cycleDuration);                // measured respiratory rate
   display.writeO2(O2_MIN);                                   // O2 sensor pending
 
+ 
   // close expiratory valve
   expValve.close();
   // digitalWrite(SV4_CONTROL, HIGH); //@debugging to see if SV4 is being controlled correctly
@@ -316,13 +377,11 @@ void beginInspiration() {
     targetCycleEndTime = cycleTimer + targetCycleDuration;
     targetInspEndTime  = cycleTimer + targetInspDuration;
     targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE;
-    //Serial.print("vc_settings.volume"); Serial.print("\t"); Serial.println(vc_settings.volume);
     desiredInspFlow = (display.volume() * CC_PER_MS_TO_LPM / targetInspDuration); //desired inspiratory flowrate cc/ms
-    //Serial.print("desiredInspFlow:"); Serial.print("\t"); Serial.println(desiredInspFlow);
+    
   }
 
-  inspPressureReader.setPeakAndReset(); //cmH2O
-
+  
   // @TODO: This will change based on recent information.
   // move insp valve using set VT and calculated insp time
   inspValve.beginBreath(desiredInspFlow);
@@ -356,17 +415,16 @@ void beginHoldInspiration() {
 }
 
 void beginExpiration() {
-  //Serial.println("entering exp state"); //uncomment for @debugging
-  tidalVolumeInsp = inspFlowReader.getVolume();
-  display.writeVolumeInsp(inspFlowReader.getVolume()); // record inspiratory tidal Volume
+   
+  inspPressureReader.setPeakAndReset(); //cmH2O
 
+  tidalVolumeInsp = inspFlowReader.getVolume(); //set last tidal volume
+  display.writeVolumeInsp(tidalVolumeInsp);     // display measured inspiratory tidal Volume
+  
   inspValve.endBreath();
-  //Serial.println("endBreath with prop valve");
   expValve.open();
-  //digitalWrite(SV4_CONTROL, LOW);
   expTimer = millis();
-  //digitalWrite(SV4_CONTROL, LOW); //@debugging to see if SV4 is being controlled correctly
-  //Serial.println("opened expValve"); //@debugging
+
 
   targetExpVolume = inspFlowReader.getVolume() * 8 / 10;  // Leave EXP_STATE when expVolume is 80% of inspVolume
 
@@ -375,6 +433,7 @@ void beginExpiration() {
 
   //Serial.print("max exp volume ="); Serial.print("\t"); Serial.println(inspFlowReader.getVolume());
   expFlowReader.resetVolume();
+  
 
 }
 
@@ -498,15 +557,14 @@ void volumeControlStateMachine(){
 
     case INSP_STATE: {
       Serial.println("in insp state"); //@debugging
+      
       display.updateFlowWave(inspFlowReader.get());
       inspFlowReader.updateVolume();
-      //expFlowReader.updateVolume();
       bool timeout = (millis() >= targetInspEndTime + INSP_TIME_SENSITIVITY);
-      //Serial.print("targetInspEndTime ="); Serial.print("\t"); Serial.println(targetInspEndTime); //@debugging
-      //Serial.print("set TV volume ="); Serial.print("\t"); Serial.println(vc_settings.volume); //@debugging
+      
       if (inspFlowReader.getVolume() >= display.volume() || timeout) { //@debugging add the following back:
         if (timeout) {
-          alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
+         alarmMngr.activateAlarm(ALARM_TIDAL_LOW); 
         }
 
         if (display.inspHold()) { //@debugging
@@ -546,6 +604,9 @@ void volumeControlStateMachine(){
       //Serial.print("inspHoldTimer"); Serial.print("\t"); Serial.println(millis() - inspHoldTimer); //@debugging
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
+        if(inspPressureReader.plateau() > PPLAT_MAX){
+         alarmMngr.activateAlarm(ALARM_PPLAT_HIGH);
+        }
         setState(EXP_STATE);
         beginExpiration();
       }
