@@ -10,7 +10,7 @@ char buffer2[20];
 Display::Display() {
   settings.o2 = O2_MIN;
   settings.sensitivity = SENSITIVITY_MIN;
-  settings.bpm = 20;
+  settings.bpm = 10;
   settings.ie[0] = IE_INSP;
   settings.ie[1] = 2; 
   settings.volume = 400;
