@@ -506,7 +506,7 @@ void volumeControlStateMachine(){
           alarmMgr.activateAlarm(ALARM_TIDAL_LOW);
         }
 
-        if (true /*display.inspHold()*/) { //@debugging
+        if (display.inspHold()) { //@debugging
           setState(HOLD_INSP_STATE);
           Serial.print("calling beginHoldInspiration");
           beginHoldInspiration();
