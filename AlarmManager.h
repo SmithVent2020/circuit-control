@@ -92,6 +92,6 @@ class AlarmManager {
 };
 
 // The alarm maranger
-extern AlarmManager alarmMgr;
+extern AlarmManager alarmMngr;
 
 #endif

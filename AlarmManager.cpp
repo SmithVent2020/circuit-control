@@ -1,5 +1,4 @@
 #include "AlarmManager.h"
-
 static const alarmCode firstCodeAtPriority[] = {
   FIRST_ALARM,                              // First HIGH_PRIORITY code
   alarmCode(ALARM_MAX_HIGH_PRIORITY + 1),   // First MED_PRIORITY code
@@ -95,6 +94,7 @@ void AlarmManager::activateAlarm(alarmCode code) {
     }
   }
 }
+
 
 /*
  * Makes specified alarm inactive
@@ -318,4 +318,4 @@ void AlarmManager::maintainAlarms() {
   }
 }
 
-AlarmManager alarmMgr;
+AlarmManager  alarmMngr;

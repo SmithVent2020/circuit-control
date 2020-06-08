@@ -59,7 +59,7 @@ float lastPeak = 0.0/0.0; //peak pressure from last loop
 
 
 //initialize alarm
-AlarmManager alarmMngr;
+
 
 
 
@@ -500,7 +500,7 @@ void pressureSupportStateMachine() {
         beginPeepPause();
       }
       else if (millis() - expTimer > APNEA_BACKUP) {
-        alarmMgr.activateAlarm(ALARM_APNEA);
+        alarmMngr.activateAlarm(ALARM_APNEA);
         ventMode = VC_MODE;
         setState(INSP_STATE);
         beginInspiration();
@@ -532,7 +532,7 @@ void pressureSupportStateMachine() {
 
       // Apnea check
       if (millis() - expTimer > APNEA_BACKUP) {
-        alarmMgr.activateAlarm(ALARM_APNEA);
+        alarmMngr.activateAlarm(ALARM_APNEA);
         ventMode = VC_MODE;
         setState(INSP_STATE);
         beginInspiration();
