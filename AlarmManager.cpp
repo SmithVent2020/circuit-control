@@ -122,6 +122,7 @@ void AlarmManager::deactivateAlarm(alarmCode code) {
       alarmRearm = ULONG_MAX;
     } else if (top > code) {   // recall that lowest code is highest priority!
       // lower priority alarm remains
+      display.showAlarm(alarmText[top],getAlarmPriority(top));
       beginAlarm();
     }  // else allow higher-priority alarm to continue
   }
