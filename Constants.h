@@ -28,7 +28,7 @@ enum VentMode {
 
 // Timing interval settings (all values in milliseconds)
 const unsigned long LOOP_PERIOD = 30;         // The period of the control loop
-const unsigned long HOLD_INSP_DURATION = 500; // Interval to pause after inhalation
+const unsigned long HOLD_INSP_DURATION = 700; // Interval to pause after inhalation
 const unsigned long MIN_PEEP_PAUSE = 50;      // Interval to pause after exhalation / before watching for an assisted inhalation
 const unsigned long MAX_EXP_DURATION = 1000;  // Maximum exhale duration (ms)
 
