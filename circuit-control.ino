@@ -223,6 +223,8 @@ void loop() {
 
   // handleErrors();        // check thresholds against sensor values
 
+  // Graphs just show insp-side sensors
+  display.updateFlowWave(inspFlowReader.get());
   display.updatePressureWave(inspPressureReader.get());
 
   //manage reservoir refilling
@@ -498,7 +500,6 @@ void volumeControlStateMachine(){
 
     case INSP_STATE: {
       Serial.println("in insp state"); //@debugging
-      display.updateFlowWave(inspFlowReader.get());
       inspFlowReader.updateVolume();
       //expFlowReader.updateVolume();
       bool timeout = (millis() >= targetInspEndTime + INSP_TIME_SENSITIVITY);
@@ -533,7 +534,6 @@ void volumeControlStateMachine(){
 
     case INSP_SUSTAIN_STATE:
       Serial.println("in insp sustain state");
-      display.updateFlowWave(inspFlowReader.get());
       // Should never get here in volume control mode.  In the unlikely event
       // that we find ourselves here, switch immediately to expiration state.
       setState(EXP_STATE);
@@ -542,7 +542,6 @@ void volumeControlStateMachine(){
 
     case HOLD_INSP_STATE:
       Serial.println("in hold insp state");
-      display.updateFlowWave(inspFlowReader.get());
       //Serial.print("inspHoldTimer"); Serial.print("\t"); Serial.println(millis() - inspHoldTimer); //@debugging
       if (HOLD_INSP_DURATION <= millis() - inspHoldTimer) {
         inspPressureReader.setPlateau();
@@ -553,7 +552,6 @@ void volumeControlStateMachine(){
 
     case EXP_STATE:
       Serial.println("in exp state");
-      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
       //Serial.print("targetEndExpTime ="); Serial.print("\t"); Serial.println(targetExpEndTime + EXP_TIME_SENSITIVITY); //@debugging
@@ -566,7 +564,6 @@ void volumeControlStateMachine(){
 
     case PEEP_PAUSE_STATE:
       Serial.println("in PEEP state");
-      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
       //Serial.print("target PEEP pause"); Serial.print("\t"); Serial.println(millis() + MIN_PEEP_PAUSE); //@debugging
@@ -581,7 +578,6 @@ void volumeControlStateMachine(){
 
     case HOLD_EXP_STATE: {
       Serial.println("in exp Hold state");
-      display.updateFlowWave(expFlowReader.get() * -1);
       expFlowReader.updateVolume();
       //inspFlowReader.updateVolume();
 
@@ -592,7 +588,7 @@ void volumeControlStateMachine(){
       //Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       //Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
 
-      if ( timeout) { //@debugging add back with real patient: patientTriggered ||
+      if (patientTriggered || timeout) { //@debugging add back with real patient: 
         if (!patientTriggered){
 
         }
