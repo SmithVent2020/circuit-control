@@ -587,7 +587,7 @@ void volumeControlStateMachine(){
       //Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
       //Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
 
-      if (timeout) { //@debugging add back with real patient: patientTriggered ||
+      if (patientTriggered || timeout) { //@debugging add back with real patient: 
         if (!patientTriggered){
 
         }
