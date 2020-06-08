@@ -605,6 +605,8 @@ void volumeControlStateMachine(){
         inspPressureReader.setPlateau();
         if(inspPressureReader.plateau() > PPLAT_MAX){
          alarmMgr.activateAlarm(ALARM_PPLAT_HIGH);
+         Serial.println("Activating PPlat High Alarm");
+         Serial.print("PPlat ="); Serial.print("\t"); Serial.println(inspPressureReader.plateau());
         }
         setState(EXP_STATE);
         beginExpiration();
