@@ -564,6 +564,8 @@ void volumeControlStateMachine(){
       if (inspFlowReader.getVolume() >= display.volume() || timeout) { //@debugging add the following back:
         if (timeout) {
          alarmMgr.activateAlarm(ALARM_TIDAL_LOW); 
+        }else if(alarmMgr.alarmStatus(ALARM_TIDAL_LOW)){
+          alarmMgr.deactivateAlarm(ALARM_TIDAL_LOW);
         }
 
         if (display.inspHold()) { //@debugging
