@@ -580,13 +580,10 @@ void volumeControlStateMachine(){
       bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - display.sensitivity();
       bool timeout = (millis()  > targetCycleEndTime);
 
-      //Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
-      //Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
+      Serial.print("patientTriggered?"); Serial.print("\t"); Serial.println(patientTriggered); //@debugging
+      Serial.print("targetCycleEndTime"); Serial.print("\t"); Serial.println(targetCycleEndTime); //@debugging
 
-      if (timeout) { //@debugging add back with real patient: patientTriggered ||
-        if (!patientTriggered){
-
-        }
+      if (patientTriggered ||timeout) { //@debugging add back with real patient: patientTriggered ||
 
         // @TODO: write PiP, PEEP and Pplat to display
         beginInspiration();
