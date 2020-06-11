@@ -112,7 +112,7 @@ class AlarmManager {
     unsigned long alarmNextBlink = ULONG_MAX;
 };
 
-// The alarm maranger
+// The alarm manager
 extern AlarmManager alarmMgr;
 
 #endif

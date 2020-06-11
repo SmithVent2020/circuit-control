@@ -12,7 +12,7 @@ static const alarmCode firstCodeAtPriority[] = {
 // In most cases, an invalid code results in no action, but it theoretically
 // should be logged as a logic error.
 static inline bool isValidCode(alarmCode code) {
-  return FIRST_ALARM < code && code < N_ALARMS;
+  return FIRST_ALARM <= code && code < N_ALARMS;
 }
 
 /*

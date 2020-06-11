@@ -269,8 +269,6 @@ void loop() {
     setState(OFF_STATE);
   }
 
-  // @TODO: alarm maintenance
-
   //read all sensors, and check to see if readings are within acceptable ranges
   readSensors();
   displaySensors();        // for @debugging display readings to serial monitor
