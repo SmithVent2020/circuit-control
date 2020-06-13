@@ -1,4 +1,5 @@
-#SmithVent: Pneuamtic, Cost-effective Ventilator for Covid-19
+# SmithVent: Pneuamtic, Cost-effective Ventilator
+## Designed for Covid-19 patients through the CoVent Challenge
 
 **This code is provided for reference use only.** Our goal is to showcase the functionality of the Volume Control mode, which was partially tested, and its auxiliary specification in terms of valve behavior and UI interaction. Pressure Support, which is meant to assist patient as they breath on their own, is largely written but has not been tested. 
 
