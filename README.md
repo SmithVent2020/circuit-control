@@ -25,7 +25,7 @@ IE = Ti/Te
 ```
 
 #### Desired Inspiratory Flow (in L/min)
-![equation](http://www.sciweavers.org/tex2img.php?eq=%5Cdot%7BV%7D%3D%5Cfrac%7BV_T%7D%7BTi%7D%3D%20%5Cfrac%7BV_T%2ABPM%2A%281%2BIE%29%7D%7BIE%20%2A%201000%7D&bc=White&fc=Black&im=jpg&fs=12&ff=arev&edit=0)
+![equation](https://bit.ly/3cZxs32)
 
 #### PID
 
