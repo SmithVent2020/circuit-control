@@ -22,11 +22,9 @@
 #include "AlarmManager.h"
 #include "Display.h"
 #include "MeanSmooth.h"
-
+#include "State.h"
 
 //-----------------------------------------------INITIALIZE VARIABLES---------------------------------------------------
-unsigned long cycleCount = 0; // number of breaths (including current breath)
-
 float targetExpVolume    = 0; // minimum target volume for expiration
 
 // Target time parametaers (in milliseconds). Calculated, not measured.
@@ -62,7 +60,10 @@ float lastPeak = 0.0/0.0; //peak pressure from last breath
 // Flags
 bool DEBUG = false;          // for debugging mode
 bool ventilatorOn = false;   //@cleaning: get rid of this, we already have an on button 
-VentMode ventMode = VC_MODE; //set the default ventilation mode to volume control 
+VentilatorMode VentilatorMode = VC_MODE; //set the default ventilation mode to volume control 
+
+State *vstate;        // current state of machine
+BreathData breath;   // data about current breath
 
 // @TODO: Implement Display class @cleaning
 // Display display();
@@ -241,7 +242,7 @@ void setup() {
   analogWrite(SV3_CONTROL, 0);
 
   //set to VC_MODE (@FutureWork this should change once a UI startup sequence is built)
-  ventMode = VC_MODE;                   // for testing VC mode only
+  VentilatorMode = VC_MODE;                   // for testing VC mode only
   expValve.close();                     // close exp valve
   Serial.println("closing expValve");   //@cleanup
   setState(OFF_STATE);                  //set state to OFF_STATE
@@ -253,6 +254,8 @@ void setup() {
   // @FutureWork: implement startup sequence on display
   // display.start();
 
+  vstate = OffState::begin(breath);
+
   cycleTimer = millis(); //begin cycle timer
 }
 
@@ -261,18 +264,12 @@ void setup() {
 void loop() {
   // All States
   display.listen();
-
-  //check if the user has turned of ventilation
-  if (display.isTurnedOff()) {
-    setState(OFF_STATE);
-  }
-
   
   readSensors();               //read all sensors, and check to see if readings are within acceptable ranges
   displaySensors();            // for @debugging display readings to serial monitor
 
   //@debugging only alarm after first 5 breaths (because we have not yet solved "warm up" issue)
-  if(cycleCount > 5){  
+  if(BreathData::cycleCount > 5){  
     checkSensorReadings();     // check thresholds against sensor values
     alarmMgr.maintainAlarms(); //maintain alarms 
   }
@@ -282,12 +279,14 @@ void loop() {
   //manage reservoir refilling based on FIO2 concentration set by user on the display
   o2Management(display.oxygen());
 
-  if (ventMode == PS_MODE) {
+  vstate = vstate->update();
+
+  /*if (VentilatorMode == PS_MODE) {
     // Run pressure support mode
     //Serial.println("entering PS mode"); //@debugging 
     o2Management(display.oxygen()); //@cleanup
     pressureSupportStateMachine(); 
-  } else if (ventMode == VC_MODE) {
+  } else if (VentilatorMode == VC_MODE) {
     // Run volume control mode
     //Serial.println("Entering VC_Mode"); //@debugging
     
@@ -299,7 +298,7 @@ void loop() {
     //Serial.println("exiting VC state machine"); //@cleanup
   } else {
     Serial.println("no mode entered");
-  }
+  }*/
 }
 
 
@@ -359,7 +358,7 @@ void beginInspiration() {
   Serial.println("closed expValve"); //@cleanup
 
   // Compute intervals at current settings
-  if (ventMode == PS_MODE) {
+  if (VentilatorMode == PS_MODE) {
     unsigned long targetCycleDuration = 60000UL / display.bpm();  // ms from start of cycle to end of inspiration
     targetCycleEndTime = cycleTimer + targetCycleDuration;        // target end time for the breath
     targetInspEndTime  = cycleTimer + targetCycleDuration / 2;    // @FutureWork: How should this be set for PS Mode?
@@ -379,7 +378,7 @@ void beginInspiration() {
   
   inspValve.beginBreath(desiredInspFlow); // begin PID control of the insp valve according to the desired inspiratory flowrate
   inspFlowReader.resetVolume();           //reset the inspiration tidal volume counter
-  cycleCount++;                           //increment the counter of how many breaths have passed since machine was turned on last
+  BreathData::cycleCount++;                           //increment the counter of how many breaths have passed since machine was turned on last
 }
 
 void beginInsiratorySustain() {
@@ -491,7 +490,7 @@ void pressureSupportStateMachine() {
       }
       else if (millis() - expTimer > APNEA_BACKUP) {
         alarmMgr.activateAlarm(ALARM_APNEA);
-        ventMode = VC_MODE;
+        VentilatorMode = VC_MODE;
         setState(INSP_STATE);
         beginInspiration();
       }
@@ -523,7 +522,7 @@ void pressureSupportStateMachine() {
       // Apnea check
       if (millis() - expTimer > APNEA_BACKUP) {
         alarmMgr.activateAlarm(ALARM_APNEA);
-        ventMode = VC_MODE;
+        VentilatorMode = VC_MODE;
         setState(INSP_STATE);
         beginInspiration();
       }

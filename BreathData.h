@@ -1,16 +1,11 @@
 #ifndef BREATH_DATA_H
 #define BREATH_DATA_H
 
-// Controls state machine behavior and other operational characteristics
-/*enum VentilatorMode {
-    STANDBY_MODE,  // 0
-    VC_MODE,       // 1
-    PS_MODE        // 2
-};*/
+#include "Constants.h"
 
 class BreathData {
   public:
-    //VentilatorMode mode;
+    VentilatorMode ventMode;
     float targetExpVolume    = 0; // minimum target volume for expiration
 
     // Target time parametaers (in milliseconds). Calculated, not measured.
@@ -42,8 +37,11 @@ class BreathData {
     float lastPeep = 0.0/0.0; //PEEP from last breath
     float lastPeak = 0.0/0.0; //peak pressure from last breath
 
+    static unsigned long cycleCount; // number of breaths (including current breath)
+
     // update functions
     void beginInspiration();
+    void beginInspiratorySustain();
     void beginHoldInspiration();
     void beginExpiration();
     void beginPeepPause();

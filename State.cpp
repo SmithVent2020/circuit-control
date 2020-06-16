@@ -7,6 +7,7 @@
 #include "Valve.h"
 #include "ProportionalValve.h"
 #include "AlarmManager.h"
+#include "State.h"
 
 // Initialize singleton instances
 OffState* OffState::instance = 0;
@@ -16,6 +17,8 @@ SustState* SustState::instance = 0;
 ExpState* ExpState::instance = 0;
 PeepState* PeepState::instance = 0;
 ExpHoldState* ExpHoldState::instance = 0;
+
+BreathData* State::breath;
 
 /*********************************************************/
 /* OffState                                              */
@@ -27,8 +30,13 @@ static State* OffState::begin(BreathData b) {
         instance = new OffState(); 
     }
     Serial.println("entering off state"); //@debugging
-    breath = b;
+    breath = &b;
     return instance;
+}
+
+static State* OffState::enter() {
+    // if we enter this state other than at the beginning, sound an alarm        
+    alarmMgr.activateAlarm(ALARM_SHUTDOWN);
 }
 
 // perform maintenance, and perhaps transition to new state
@@ -48,9 +56,17 @@ static State* InsState::enter() {
     if (instance==0) { 
         instance = new InsState(); 
     }
-    Serial.println("entering insp state"); //@debugging
-    breath.beginInspiration();  // close valves, etc.
-    return instance;
+
+    State* nextState;
+    //check if the user has turned of ventilation
+    if (display.isTurnedOff()) {
+        nextState = OffState::enter();
+    } else {
+        Serial.println("entering insp state"); //@debugging
+        breath->beginInspiration();  // close valves, etc.
+        nextState = instance;
+    }
+    return nextState;
 }
 
 // perform maintenance, and perhaps transition to new state
@@ -60,14 +76,14 @@ State* InsState::update() {
     display.updateFlowWave(inspFlowReader.get());                           //update flow waveform on the display
     inspFlowReader.updateVolume();                                          //update the inpsiratory volume counter
     
-    bool timeout = (millis() >= breath.targetInspEndTime + INSP_TIME_SENSITIVITY); //calculate when the INSP_STATE should time out
+    bool timeout = (millis() >= breath->targetInspEndTime + INSP_TIME_SENSITIVITY); //calculate when the INSP_STATE should time out
 
     //transition out of INSP_STATE if either the inspired volume >= tidal volume set by user on the display
     //or if the INSP_STATE  has timed out (according to set BPM, IE ratio and INSP_TIME_SENSITIVITY
     State* nextState;
     if (inspFlowReader.getVolume() >= display.volume() || timeout) {  
         // we're leaving this state   
-        breath.inspDuration = millis() - breath.cycleTimer; // Record length of inspiration
+        breath->inspDuration = millis() - breath->cycleTimer; // Record length of inspiration
 
         // check for alarm conditions
         if (timeout) {
@@ -91,7 +107,7 @@ State* InsState::update() {
         
         // keep adjusting inspiratory valve until targetInspEndTime is reached
         Serial.println("maintaining breath"); //@cleanup
-        inspValve.maintainBreath(breath.cycleTimer);
+        inspValve.maintainBreath(breath->cycleTimer);
     }
     return nextState;    
 }
@@ -107,7 +123,7 @@ static State* InsHoldState::enter() {
     }
     Serial.println("entering ins hold state"); //@debugging    
     display.resetInspHold();   //reset inspiratory hold value on display
-    breath.beginHoldInspiration();    //begin the INSP_HOLD_STATE
+    breath->beginHoldInspiration();    //begin the INSP_HOLD_STATE
     return instance;
 }
 
@@ -117,7 +133,7 @@ State* InsHoldState::update() {
     display.updateFlowWave(inspFlowReader.get()); //update flow waveform on display, based on current flow reading
     
     State* nextState;
-    if (HOLD_INSP_DURATION <= millis() - breath.inspHoldTimer) {
+    if (HOLD_INSP_DURATION <= millis() - breath->inspHoldTimer) {
         //switch to EXP_STATE
         nextState = ExpState::enter();
 
@@ -166,7 +182,7 @@ static State* ExpState::enter() {
         instance = new ExpState(); 
     }
     Serial.println("entering exp state"); //@debugging    
-    breath.beginExpiration();
+    breath->beginExpiration();
     return instance;
 }
 
@@ -177,7 +193,7 @@ State* ExpState::update() {
     expFlowReader.updateVolume();                     //update expiratory volume counter
     
     State* nextState;
-    if (expFlowReader.getVolume() >= breath.targetExpVolume || millis() > breath.targetExpEndTime + EXP_TIME_SENSITIVITY){ 
+    if (expFlowReader.getVolume() >= breath->targetExpVolume || millis() > breath->targetExpEndTime + EXP_TIME_SENSITIVITY){ 
         //if 80% of inspired volume has been expired, transition to PEEP_PAUSE_STATE 
         nextState = PeepState::enter();
     } else {
@@ -196,7 +212,7 @@ static State* PeepState::enter() {
         instance = new PeepState(); 
     }
     Serial.println("entering peep state"); //@debugging    
-    breath.beginPeepPause();
+    breath->beginPeepPause();
     return instance;
 }
 
@@ -207,7 +223,7 @@ State* PeepState::update() {
     expFlowReader.updateVolume();                     //update expiratory volume counter
     
     State* nextState;
-    if (millis() - breath.peepPauseTimer >= MIN_PEEP_PAUSE) {
+    if (millis() - breath->peepPauseTimer >= MIN_PEEP_PAUSE) {
         //if the PEEP pause time has run out
         expPressureReader.setPeep(); // record the peep as the current pressure
         
@@ -229,7 +245,7 @@ static State* ExpHoldState::enter() {
         instance = new ExpHoldState(); 
     }
     Serial.println("entering exp hold state"); //@debugging    
-    breath.beginHoldExpiration();
+    breath->beginHoldExpiration();
     return instance;
 }
 
@@ -241,7 +257,7 @@ State* ExpHoldState::update() {
 
     // Check if patient triggers inhale by checkin if expiratory pressure has dropped below the pressure sensitivity set by user
     bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - display.sensitivity();
-    bool timeout = (millis()  > breath.targetCycleEndTime); //check if the expiratory hold timer has run out
+    bool timeout = (millis()  > breath->targetCycleEndTime); //check if the expiratory hold timer has run out
 
     State* nextState;
     if (timeout) { //@debugging add back with real patient: patientTriggered || @cleanup: add this back

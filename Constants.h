@@ -20,10 +20,17 @@ enum States {
   OFF_STATE
 };
 
-// Ventilator modes
+/*// Ventilator modes
 enum VentMode {
   VC_MODE, // 0
   PS_MODE  // 1
+};*/
+
+// Controls state machine behavior and other operational characteristics
+enum VentilatorMode {
+    STANDBY_MODE,  // 0
+    VC_MODE,       // 1
+    PS_MODE        // 2
 };
 
 // Timing interval settings (all values in milliseconds)

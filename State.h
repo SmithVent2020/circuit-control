@@ -9,7 +9,7 @@
 class State {
   public:
     virtual State* update() = 0;           // perform maintenance, and perhaps transition to new state
-    static BreathData& breath;             // holds shared information about the breath cycle
+    static BreathData* breath;             // holds shared information about the breath cycle
 };
 
 /*
@@ -20,20 +20,21 @@ class State {
 // Standby mode.  This is the initial state.
 class OffState : public State {
   public:
-    State* update();                      // perform maintenance, and perhaps transition to next state
-    static State* begin(BreathData);   // returns the OffState instance with breath data link
+    static State* enter();               // performs actions necessary upon entering the state
+    State* update();                     // perform maintenance, and perhaps transition to next state
+    static State* begin(BreathData);     // returns the OffState instance with breath data link
   private: 
-    OffState();                          // to create singleton instance
+    OffState() {};                       // to create singleton instance
     static OffState *instance;           // storage for singleton instance
 };
 
 // Inspiration begins a breath cycle
 class InsState : public State {
   public:
-    static State* enter();             // performs actions necessary upon entering the state
-    State* update();                      // perform maintenance, and perhaps transition to next state
+    static State* enter();               // performs actions necessary upon entering the state
+    State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    InsState();                          // to create singleton instance
+    InsState() {};                       // to create singleton instance
     static InsState *instance;           // storage for singleton instance
 };
 
@@ -41,50 +42,50 @@ class InsState : public State {
 // Physician may order an inspiratory hold to measure plateau pressure
 class InsHoldState : public State {
   public:
-    static State* enter();         // performs actions necessary upon entering the state
-    State* update();                      // perform maintenance, and perhaps transition to next state
+    static State* enter();               // performs actions necessary upon entering the state
+    State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    InsHoldState();                      // to create singleton instance
+    InsHoldState() {};                   // to create singleton instance
     static InsHoldState *instance;
 };
 
 // Expiration 
 class ExpState : public State {
   public:
-    static State* enter();             // performs actions necessary upon entering the state
-    State* update();                      // perform maintenance, and perhaps transition to next state
+    static State* enter();               // performs actions necessary upon entering the state
+    State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    ExpState();                          // to create singleton instance
+    ExpState() {};                       // to create singleton instance
     static ExpState *instance;
 };
 
 // Used in pressure support mode during inspiration
 class SustState : public State {
   public:
-    static State* enter();            // performs actions necessary upon entering the state
-    State* update();                      // perform maintenance, and perhaps transition to next state
+    static State* enter();               // performs actions necessary upon entering the state
+    State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    SustState();                         // to create singleton instance
+    SustState() {};                      // to create singleton instance
     static SustState *instance;
 };
 
 // Measure PEEP pressure at end of expiration
 class PeepState : public State {
   public:
-    static State* enter();            // performs actions necessary upon entering the state
-    State* update();                      // perform maintenance, and perhaps transition to next state
+    static State* enter();               // performs actions necessary upon entering the state
+    State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    PeepState();                         // to create singleton instance
+    PeepState() {};                      // to create singleton instance
     static PeepState *instance;
 };
 
 // Waiting for new breath to begin
 class ExpHoldState : public State {
   public:
-    static State* enter();         // performs actions necessary upon entering the state
-    State* update();                      // perform maintenance, and perhaps transition to next state
+    static State* enter();               // performs actions necessary upon entering the state
+    State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    ExpHoldState();                      // to create singleton instance
+    ExpHoldState() {};                   // to create singleton instance
     static ExpHoldState *instance;
 };
 
