@@ -39,6 +39,7 @@ jobs:
         arduino-cli core update-index
         arduino-cli core install ${{ matrix.arduino-platform }}
         arduino-cli lib install SD PID
+        arduino-cli lib install Nextion
 
     # Runs the arudino cli compile command on the sketch
     - name: Compile Sketch
