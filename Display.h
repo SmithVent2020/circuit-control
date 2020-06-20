@@ -19,7 +19,7 @@ class Display {
 		// initialize screen
 		void init();
 
-		// startup sequence 
+		// @FutureWork: startup sequence 
 		void start();
 
 		// nexLoop to listen for button events and update values
@@ -63,11 +63,7 @@ class Display {
 		int bpm() const { return settings.bpm; } 
 		unsigned inspPercent() const { return settings.ie[0]*100 / (settings.ie[0] + settings.ie[1]); } 
 
-		// Pressure Support only
-		int peak() const { return settings.peak; }
-		float cycleOff() const { return settings.cycleOff; }
-		float riseTime() const { return settings.riseTime; }
-
+		// indicates settings are locked
 		bool locked;
 
 	private:
@@ -117,12 +113,15 @@ class Display {
 		NexText rr   = NexText( 6, 46, "t28" );
 		NexText o2   = NexText( 6, 43, "t17" );
 
+		// listen events
 		NexTouch *nex_listen_list[3];
 
+		// graph smoothing
 		MeanSmooth flowSmoother;
     MeanSmooth pressureSmoother;
 };
 
+// callbacks for buttons
 void holdPopCallback(void *ptr);
 void lockPopCallback(void *ptr);
 void bellPushCallback(void *ptr);
