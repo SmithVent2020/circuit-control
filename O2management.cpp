@@ -1,27 +1,34 @@
 #include "O2Management.h"
 #include "Pressure.h"
 #include "Valve.h"
+#include "AlarmManager.h"
 
 #include <limits.h> // For ULONG_MAX
 
 static const float UPPER_PRESSURE_THRESHOLD = 1756.67; //cmH2O (25 psi)
 static const float LOWER_PRESSURE_THRESHOLD = 703.07;  //cmH2O (10 psi)
+static const float LOWER_PRESSURE_LIMIT     = 400;     //cmH2O
 
 
 void o2Management(int O2target){
-
+  Serial.print("O2 target setting: ");
+  Serial.println(O2target);
+  
+  if(reservoirPressureReader.get() < LOWER_PRESSURE_LIMIT){
+    alarmMgr.activateAlarm(ALARM_INLET_GAS);
+  }
   if(reservoirPressureReader.get()<= LOWER_PRESSURE_THRESHOLD){
     if(O2target == 21){
-      //Serial.println("opening air and O2 valves (O2% = 21)");
+      Serial.println("opening air and O2 valves (O2% = 21)");
       airValve.open();
     }
     else if(O2target == 60){
-      //Serial.println("opening air and O2 valves, (O2% = 60)");
+      Serial.println("opening air and O2 valves, (O2% = 60)");
       airValve.open();
       oxygenValve.open();
     }
     else if(O2target == 100){
-      //Serial.println("opening air and O2 valves (O2% = 100)");
+      Serial.println("opening air and O2 valves (O2% = 100)");
       oxygenValve.open();
     }
     else{

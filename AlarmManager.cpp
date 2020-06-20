@@ -1,4 +1,5 @@
 #include "AlarmManager.h"
+#include "Display.h"
 
 static const alarmCode firstCodeAtPriority[] = {
   FIRST_ALARM,                              // First HIGH_PRIORITY code
@@ -11,7 +12,7 @@ static const alarmCode firstCodeAtPriority[] = {
 // In most cases, an invalid code results in no action, but it theoretically
 // should be logged as a logic error.
 static inline bool isValidCode(alarmCode code) {
-  return FIRST_ALARM < code && code < N_ALARMS;
+  return FIRST_ALARM <= code && code < N_ALARMS;
 }
 
 /*
@@ -76,14 +77,14 @@ bool AlarmManager::onPriority(alarmPriority level) {
  * Makes specified alarm active
  *
  * Sets alarm status to true and unsilences alarm.
- * If this is the top priority alarm, sets onset timestamp & next tone
+ * Does nothing if alarm is already set
  *
  * No effect if invalid code is supplied
  *
  * @params code -- alarm index
  */
 void AlarmManager::activateAlarm(alarmCode code) {
-  if (isValidCode(code)) {
+  if (isValidCode(code)&&!alarms[code]) {
     alarms[code] = true;
     alarmCode top = topAlarm();
     alarmLED = true;
@@ -92,6 +93,7 @@ void AlarmManager::activateAlarm(alarmCode code) {
       // @TODO: Shouldn't turning on any alarm at same or higher priority unsilence alarms?
       alarmSounding = true;
       beginAlarm();
+      display.showAlarm(alarmText[code],getAlarmPriority(code));
     }
   }
 }
@@ -112,6 +114,7 @@ void AlarmManager::deactivateAlarm(alarmCode code) {
   if (alarmStatus(code) == true) {
     alarms[code] = false;
     quellAlarm(code);  // cease LED display and tone for deactivated alarm
+    display.stopAlarm();
     alarmCode top = topAlarm();  // check for new top alarm
     if (top == ALARM_NONE) {
       // no alarms remain
@@ -119,6 +122,7 @@ void AlarmManager::deactivateAlarm(alarmCode code) {
       alarmRearm = ULONG_MAX;
     } else if (top > code) {   // recall that lowest code is highest priority!
       // lower priority alarm remains
+      display.showAlarm(alarmText[top],getAlarmPriority(top));
       beginAlarm();
     }  // else allow higher-priority alarm to continue
   }

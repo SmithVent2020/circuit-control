@@ -44,7 +44,7 @@ class Flow {
     // only needed for pressure support
     float peak_flow_;
     float current_peak_;
-    long zeroed_sensor_min_ = 1023L * 500 / 5000; //sensor minimum usually around 500mv, calibrated in Setup
+    long zero_flow_offset_ = 0;  // raw reading at 0 flow -> adjustment to future readings
 
     // Volume integraton
     unsigned long last_timepoint_; // Time of last call to `resetVolume` or `updateVolume`.
