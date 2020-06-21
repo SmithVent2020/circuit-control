@@ -197,6 +197,9 @@ void loop() {
 
   // manage reservoir refilling based on FIO2 concentration set by user on the display
   o2Management(display.oxygen());
+
+  // go to VC State machine
+  volumeControlStateMachine();
 }
 
 
@@ -217,7 +220,8 @@ void setState(States newState) {
  */ 
 void beginOff() {
   inspValve.endBreath(); // close the inspiratory valve
-  expValve.open(); // keep expiratory valve open for safety (also does not use as much power)
+  expValve.open();       // keep expiratory valve open for safety (also does not use as much power)
+  alarmMgr.activateAlarm(ALARM_SHUTDOWN); // activate shutdown alarm
 }
 
 /**
