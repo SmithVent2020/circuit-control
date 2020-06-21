@@ -6,7 +6,7 @@ char buffer[20];
 char buffer2[20];
 
 /*
- * Initialize values
+ * Initialize setting values
  */
 Display::Display() {
   settings.o2 = O2;
@@ -16,20 +16,16 @@ Display::Display() {
   settings.ie[1] = IE_EXP; 
   settings.volume = TIDAL_VOLUME;
   settings.inspHold = false;
-  settings.peak = PS;
-  settings.apnea = APNEA_BACKUP/1000;
-  settings.cycleOff = CYCLE_OFF;
-  settings.riseTime = RISE_TIME/1000;
 
   turnOff = false;
   locked = false;
 }
 
+/**
+ * Initialize display callback and register buttons
+ */ 
 void Display::init() {
-  nexInit(115200);
-
-  // dbSerial is for debugging screen
-  dbSerialPrintln("setup done");
+  nexInit(115200); // set baud rate to 115200
 
   hold.attachPop(holdPopCallback, &hold);
   lock.attachPop(lockPopCallback, &lock);
@@ -40,26 +36,33 @@ void Display::init() {
   nex_listen_list[2] = NULL; 
 }
 
+/**
+ * Listen to callback events
+ */  
 void Display::listen() {
   nexLoop(nex_listen_list);
 }
 
+/**
+ * Reset inspiratory hold once the system registers it
+ */  
 void Display::resetInspHold() {
   settings.inspHold = false;
 }
 
+/**
+ * Show alarm banner with color based on priority
+ */ 
 void Display::showAlarm(const char *buffer, int priority) {
   sendCommand("vis 1,1");
 
-  if(priority == 0) {
-    banner.Set_background_color_bco(63488);
-  } else {
-    banner.Set_background_color_bco(65504);
-  }
-
+  priority == 0 ? banner.Set_background_color_bco(63488) : banner.Set_background_color_bco(65504);
   banner.setText(buffer);
 }
 
+/**
+ * Hide alarm banner when values return to normal
+ */ 
 void Display::stopAlarm() {
   sendCommand("vis 1,0");
 }
@@ -69,15 +72,11 @@ void Display::stopAlarm() {
 // -----------------
 void Display::updateFlowWave(float flow) {
   uint8_t val = map(flow, FLOW_RANGE_MIN, FLOW_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
-  dbSerialPrint("Flow waveform value=");
-  dbSerialPrintln(val);
   flowWave.addValue(0, flowSmoother.smooth(val));
 }
 
 void Display::updatePressureWave(float pressure) {
   uint8_t val = map(pressure, PRESSURE_RANGE_MIN, PRESSURE_RANGE_MAX, GRAPH_MIN, GRAPH_MAX);
-  dbSerialPrint("Pressure waveform value=");
-  dbSerialPrintln(val);
   pressureWave.addValue(0, pressureSmoother.smooth(val));
 }
 
@@ -124,49 +123,33 @@ void Display::writeO2(int oxygen) {
   o2.setText(buffer);
 }
 
+// Update setting values based on user input
 void Display::updateValues() {
   VTText.getText(buffer, sizeof(buffer));
   settings.volume = atoi(buffer);
-  dbSerialPrint("Volume setting=");
-  dbSerialPrintln(settings.volume);
 
   RRText.getText(buffer, sizeof(buffer));
   settings.bpm = atoi(buffer);
-  dbSerialPrint("BPM setting=");
-  dbSerialPrintln(settings.bpm);
 
   O2Text.getText(buffer, sizeof(buffer));
   settings.o2 = atoi(buffer);
-  dbSerialPrint("O2 setting=");
-  dbSerialPrintln(settings.o2);
 
   IEText.getText(buffer, sizeof(buffer));
   sscanf(buffer, "%d:%d", &settings.ie[0], settings.ie[1]);
-  dbSerialPrint("O2 setting=");
-  dbSerialPrint(settings.ie[0]);
-  dbSerialPrint(":");
-  dbSerialPrintln(settings.ie[1]);
 
   SenText.getText(buffer, sizeof(buffer));
   settings.sensitivity = atof(buffer);
-  dbSerialPrint("Sensitivity setting=");
-  dbSerialPrintln(settings.sensitivity);
 }
 
+// -----------------
+// Button callbacks
+// -----------------
 void holdPopCallback(void *ptr) {
-  dbSerialPrintln("Callback");
-  dbSerialPrint("ptr=");
-  dbSerialPrintln((uint32_t)ptr);
-
   display.setInspHold();
 }
 
 void lockPopCallback(void *ptr) {
-  dbSerialPrintln("Callback");
-  dbSerialPrint("ptr=");
-  dbSerialPrintln((uint32_t)ptr);
-
-  if(display.locked == false) {
+  if (display.locked == false) {
     display.locked = true;
     display.updateValues();
   } else {
@@ -175,13 +158,8 @@ void lockPopCallback(void *ptr) {
 }
 
 void bellPushCallback(void *ptr) {
-  dbSerialPrintln("Callback");
-  dbSerialPrint("ptr=");
-  dbSerialPrintln((uint32_t)ptr);
-
   alarmMgr.silence(SILENCE_DURATION);
 }
-
 
 // Display
 Display display;

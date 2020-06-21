@@ -195,11 +195,11 @@ void AlarmManager::quellAlarm(alarmCode code) {
 /**
  * Checks whether a specified time has elapsed.
  *
- * Assuming that very large difference between time and target
- * is result of rollover.
+ * Assumes a very large difference between time and target
+ * is result of rollover of millis()
  *
- * R/O t: current time
- * R/O targetTime:  target time
+ * @param t -- current time
+ * @param targetTime --  target time
  */
 bool AlarmManager::timeIsNow(unsigned long t, unsigned long targetTime) {
   return t >= targetTime && t - targetTime < (ULONG_MAX >> 1);

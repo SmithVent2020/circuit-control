@@ -27,10 +27,10 @@ enum VentMode {
 };
 
 // Timing interval settings (all values in milliseconds)
-const unsigned long LOOP_PERIOD = 30;         // The period of the control loop
-const unsigned long HOLD_INSP_DURATION = 500; // Interval to pause after inhalation
-const unsigned long MIN_PEEP_PAUSE = 50;      // Interval to pause after exhalation / before watching for an assisted inhalation
-const unsigned long MAX_EXP_DURATION = 1000;  // Maximum exhale duration (ms)
+const unsigned long LOOP_PERIOD = 30;          // The period of the control loop
+const unsigned long HOLD_INSP_DURATION = 500;  // Interval to pause after inhalation
+const unsigned long MIN_PEEP_PAUSE = 50;       // Interval to pause after exhalation / before watching for an assisted inhalation
+const unsigned long MAX_EXP_DURATION = 1000;   // Maximum exhale duration (ms)
 const unsigned long SILENCE_DURATION = 120000; // silence duration (ms) - 2 min
 
 // Graph settings
@@ -74,53 +74,34 @@ const int O2_SENSOR = A8;
 // ---------------------
 
 // Patient Values
-<<<<<<< HEAD
-const int BPM_MIN = 4;            // respiratory rate
-const int BPM_MAX = 40;
-const int BPM_RES = 2;            // resolution (increments of 1)
-const int O2_MIN = 21;
-const int O2_MAX = 100;
-const int O2_RES = 1;             // resolution (increments of 1)
-const int IE_INSP = 4;
-const float IE_EXP_MIN = 1;
-const float IE_EXP_MAX = 4;
-const float IE_EXP_RES = 1;       // resolution [1:1, 1:2, 1:3, 1:4]
-const float ERROR_VOLUME = 80;    // acceptable margin of error in tidal volume (should be 20% of VT)
-=======
-const int BPM = 20;               // respiratory rate
-const int O2 = 21;
-const int IE_INSP = 1;
-const float IE_EXP = 2;
->>>>>>> VC-Mod_Final
-const float TIDAL_VOLUME = 400;            // in mL (cc's)
-const float CYCLE_OFF = 0.25;              // % peak flow at which to switch to EXP in PS_MODE
-const float PS = 10;
-const unsigned long APNEA_BACKUP = 15000;  // in milliseconds
-const unsigned long RISE_TIME = 200;       // max time (ms) it takes to reach PiP
+const int BPM = 20;              // respiratory rate
+const int O2 = 21;               // O2 concentration  
+const int IE_INSP = 1;           // inspiratory portion in IE ratio
+const float IE_EXP = 2;          // expiratory portion in IE ratio
+const float TIDAL_VOLUME = 400;  // volume in mL (cc's)
 
 // Safety settings
-<<<<<<< HEAD
-const float MAX_PRESSURE = 40.0;        // Trigger high pressure alarm
-const float SENSITIVITY_MIN = 1;      // acceptable margin of error in pressure (in cmH2O)
-const float SENSITIVITY_MAX = 5.0;      
-const float SENSITIVITY_RES = 0.5;
-const float EXP_TIME_SENSITIVITY = 400; // in ms, the time "wiggle room" we allow for the patient to exhail 80% of air in VC mode 
-=======
-const float MAX_PRESSURE = 40.0;        // Trigger high pressure alarm 
+const float MAX_PRESSURE = 40.0;         // Trigger high pressure alarm 
 const float SENSITIVITY = 0.5;           // acceptable margin of error in pressure (in cmH2O)
-const float EXP_TIME_SENSITIVITY = 400;  // in ms, the time "wiggle room" we allow for the patient to exhail 80% of air in VC mode 
->>>>>>> VC-Mod_Final
-const float INSP_TIME_SENSITIVITY = 400; //ms the time "wiggle room" we allow for patient to inhail correct tidal volume
+const float EXP_TIME_SENSITIVITY = 400;  // in ms, the "wiggle room" we allow for the patient to exhale 80% of air in VC mode 
+const float INSP_TIME_SENSITIVITY = 400; // in ms, the "wiggle room" we allow for patient to inhale correct tidal volume
 
 // ---------------------
 // PID Control Values
 // ---------------------
 
-// PID gains for inspiratory valve (to be tuned after testing)
-const float VKP = 0.225; //proportional constant
-const float VKI = 1.08;  //integral constant
-const float VKD = 0;     //derivative constant
+// PID gains for inspiratory valve (initial tuning done during prototype testing)
+const float VKP = 0.225; // proportional constant
+const float VKI = 1.08;  // integral constant
+const float VKD = 0;     // derivative constant
 
+// PID controller ranges 
+const double OUTPUT_MAX = 120;
+const double OUTPUT_MIN = 40;
+const int SAMPLE_TIME = 50;
+
+// initial value for valve to open according to previous tests (close to desired)
+const int DEFAULT_VALVE_POSITION;
 
 // --------------------------
 // Generally-useful Constants
@@ -135,7 +116,7 @@ const float ATM_IN_CMH2O = 1033.23;
 const float LPM_TO_CC_PER_MS =  1000.0 / 60000.0;
 const float CC_PER_MS_TO_LPM = 60000.0 / 1000.0;
 
-//Alarm thresholds
+// Alarm thresholds
 const float TIDAL_VOLUME_SENSITVITY   = 10;//% OF SET TIDAL VOLUME
 const float PEEP_SENSITIVITY          = 3; //cmH2O
 const float INSP_PRESSURE_SENSITIVITY = 7; //cmH2O
