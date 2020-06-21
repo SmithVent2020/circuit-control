@@ -31,7 +31,7 @@ IE = Ti/Te
 ![](https://bit.ly/3cZxs32)
 
 ### Disclaimer 
-**This code is provided for reference use only.** Our goal is to showcase the functionality of the Volume Control mode, which has been initially tested, and its auxiliary specification in terms of valve behavior and UI interaction. Pressure Support, which is meant to assist patients as they breathe on their own, is largely written but has not been tested. A version of the code for Pressure Support can be found in the **[https://github.com/SmithVent2020/circuit-control/tree/VC-Mod_Final](VC-Mod_Final)** branch.
+**This code is provided for reference use only.** Our goal is to showcase the functionality of the Volume Control mode, which has been initially tested, and its auxiliary specification in terms of valve behavior and UI interaction. Pressure Support, which is meant to assist patients as they breathe on their own, is largely written but has not been tested. A version of the code for Pressure Support can be found in the **[VC-Mod_Final](https://github.com/SmithVent2020/circuit-control/tree/VC-Mod_Final)** branch.
 
 **Caution**: The enclosed control software is specific to the SmithVent system and is not to be used as is. This is essential to ensure patient safety. Futher testing and software validation is needed in order to correct any faulty behavior and reach a fully functional state. 
 
