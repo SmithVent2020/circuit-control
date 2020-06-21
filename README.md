@@ -57,6 +57,6 @@ Much appreciated credit to [RayLivingston](https://forum.arduino.cc/index.php?to
    http://brettbeauregard.com/blog/2011/04/improving-the-beginners-pid-introduction/
 
  - For function documentation see:  http://playground.arduino.cc/Code/PIDLibrary
- - can be downloaded using the arduino cli as seen below
- ```arduino-cli install lib PID_v1```
+ 
+ - was slightly edited for our use as you can use in the repo
 
