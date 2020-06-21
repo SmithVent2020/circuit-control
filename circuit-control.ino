@@ -183,6 +183,7 @@ void loop() {
   // check if the user has indicated standby mode (to turn ventilator off)
   if (display.isTurnedOff()) {
     setState(OFF_STATE);
+    alarmMgr.activateAlarm(ALARM_SHUTDOWN); // activate shutdown alarm
   }
 
   readSensors(); 
@@ -221,7 +222,6 @@ void setState(States newState) {
 void beginOff() {
   inspValve.endBreath(); // close the inspiratory valve
   expValve.open();       // keep expiratory valve open for safety (also does not use as much power)
-  alarmMgr.activateAlarm(ALARM_SHUTDOWN); // activate shutdown alarm
 }
 
 /**
