@@ -1,1 +1,0 @@
-TestAlarmManager requires AlarmManager.cpp and AlarmManager.h in the same folder to function properly.
