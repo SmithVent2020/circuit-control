@@ -29,24 +29,24 @@ class OffState : public State {
 };
 
 // Inspiration begins a breath cycle
-class InsStatePS : public State {
+class InsStateVC : public State {
   public:
     static State* enter();               // performs actions necessary upon entering the state
     State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    InsStatePS() {};                       // to create singleton instance
-    static InsStatePS *instance;           // storage for singleton instance
+    InsStateVC() {};                       // to create singleton instance
+    static InsStateVC *instance;           // storage for singleton instance
 };
 
 // USed in volume control mode during inspiration.
 // Physician may order an inspiratory hold to measure plateau pressure
-class InsHoldStatePS : public State {
+class InsHoldStateVC : public State {
   public:
     static State* enter();               // performs actions necessary upon entering the state
     State* update();                     // perform maintenance, and perhaps transition to next state
   private: 
-    InsHoldStatePS() {};                   // to create singleton instance
-    static InsHoldStatePS *instance;
+    InsHoldStateVC() {};                   // to create singleton instance
+    static InsHoldStateVC *instance;
 };
 
 // Expiration 
@@ -57,16 +57,6 @@ class ExpStateVC : public State {
   private: 
     ExpStateVC() {};                       // to create singleton instance
     static ExpStateVC *instance;
-};
-
-// Used in pressure support mode during inspiration
-class SustStatePS : public State {
-  public:
-    static State* enter();               // performs actions necessary upon entering the state
-    State* update();                     // perform maintenance, and perhaps transition to next state
-  private: 
-    SustStatePS() {};                      // to create singleton instance
-    static SustStatePS *instance;
 };
 
 // Measure PEEP pressure at end of expiration

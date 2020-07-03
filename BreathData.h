@@ -2,40 +2,37 @@
 #define BREATH_DATA_H
 
 #include "Constants.h"
+#include "AlarmManager.h"
 
 class BreathData {
   public:
-    VentilatorMode ventMode;
-    float targetExpVolume    = 0; // minimum target volume for expiration
-
-    // Target time parametaers (in milliseconds). Calculated, not measured.
+    // Calculated target time parameters (in ms)
     unsigned long targetCycleEndTime;     // desired time at end of breath (at end of HOLD_EXP_STATE)
     unsigned long targetInspEndTime;      // desired time for end of INSP_STATE
-    unsigned long targetExpDuration;      // Desired length of EXP_STATE (VC mode only)
-    unsigned long targetExpEndTime;       // Desired time at end of EXP_STATE (VC mode only)
+    unsigned long targetExpDuration;      // desired length of EXP_STATE (VC mode only)
+    unsigned long targetExpEndTime;       // desired time at end of EXP_STATE (VC mode only)
+    unsigned long targetInspDuration;     // desired duration of inspiration
 
-    // Timers (i.e., start times, in milliseconds):
-    unsigned long cycleTimer;        // Start time of start of current breathing cycle
-    unsigned long inspHoldTimer;     // Start time of inpsiratory hold state
-    unsigned long expTimer;          // Start time of expiration cycle (including exp hold & peep pause)
-    unsigned long peepPauseTimer;    // Start time of peep pause
+    // Timers (in ms)
+    unsigned long cycleTimer;        // start time of start of current breathing cycle
+    unsigned long inspHoldTimer;     // start time of inpsiratory hold state
+    unsigned long expTimer;          // start time of expiration cycle (including exp hold & peep pause)
+    unsigned long peepPauseTimer;    // start time of peep pause
 
-    // Timer results (intervals, in milliseconds):
-    unsigned long cycleDuration;      // Measured length of a whole inspiration-expiration cycle
-    unsigned long inspDuration;       // Measured length of inspiration (not including inspiratory hold)
-    unsigned long expDuration;        // Measured length of expiration (including peep pause and expiratory hold)
-    unsigned long targetInspDuration; //desired duration of inspiration
+    // Measured timer intervals (in ms)
+    unsigned long cycleDuration;      // measured length of a whole inspiration-expiration cycle
+    unsigned long inspDuration;       // measured length of inspiration (not including inspiratory hold)
+    unsigned long expDuration;        // measured length of expiration (including peep pause and expiratory hold)
 
+    // breathing circuit values to keep track of
+    float desiredInspFlow; // desired inspiratory flowrate
+    float targetExpVolume    = 0; // minimum target volume for expiration
 
-    float desiredInspFlow; //desired inspiratory flowrate
-    bool onButton = true;  //should be connected to a physical on button
+    float tidalVolumeInsp = 0.0; // measured inspiratory tidal volume
+    float tidalVolumeExp = 0.0;  // measured expiratory tidal volume
 
-
-    float tidalVolumeInsp = 0.0; //measured inspiratory tidal volume
-    float tidalVolumeExp = 0.0;  //measured expiratory tidal volume
-
-    float lastPeep = 0.0/0.0; //PEEP from last breath
-    float lastPeak = 0.0/0.0; //peak pressure from last breath
+    float lastPeep = 0.0/0.0; // PEEP from last breath
+    float lastPeak = 0.0/0.0; // peak pressure from last breath
 
     static unsigned long cycleCount; // number of breaths (including current breath)
 
@@ -46,6 +43,13 @@ class BreathData {
     void beginExpiration();
     void beginPeepPause();
     void beginHoldExpiration();
+
+    // monitoring functions
+    void checkSensorReadings();
+
+  private:
+    void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode);
+    void checkAlarmRangeWithUpdate(float reading, float &compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode);
 };
 
 #endif
