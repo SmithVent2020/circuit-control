@@ -122,4 +122,7 @@ const float PEEP_SENSITIVITY          = 3; //cmH2O
 const float INSP_PRESSURE_SENSITIVITY = 7; //cmH2O
 const float PPLAT_MAX                 = 33;//cmH2O
 
+// Floating point NaN
+static const float NaNf = 0.0f/0.0f;
+
 #endif

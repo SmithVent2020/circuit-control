@@ -7,7 +7,11 @@
 #include "Valve.h"
 #include "ProportionalValve.h"
 #include "AlarmManager.h"
+#include "BreathData.h"
 #include "State.h"
+
+// Initialize breath data
+BreathData State::breath;
 
 // Initialize singleton instances
 OffState* OffState::instance = 0;
@@ -17,27 +21,17 @@ ExpStateVC* ExpStateVC::instance = 0;
 PeepStateVC* PeepStateVC::instance = 0;
 ExpHoldStateVC* ExpHoldStateVC::instance = 0;
 
-BreathData* State::breath;
-
 /*********************************************************/
 /* OffState                                              */
 /*********************************************************/
 
-// performs actions necessary upon entering a state
-static State* OffState::begin(BreathData b) {
-    if (instance==0) instance = new OffState();  // one-time setup
-    breath = &b;                                 // store reference to breath data
-
-    // valve settings
-    inspValve.endBreath(); // close the inspiratory valve
-    expValve.open();       // keep expiratory valve open for safety (also does not use as much power)
-
-    return instance;
-}
-
 static State* OffState::enter() {
-    // if we enter this state other than at the beginning, sound an alarm        
-    alarmMgr.activateAlarm(ALARM_SHUTDOWN);
+    if (instance==0) {
+        instance = new OffState();  // one-time setup
+    } else {
+        // if we enter this state other than at the beginning, sound an alarm        
+        alarmMgr.activateAlarm(ALARM_SHUTDOWN);
+    }
 
     // valve settings
     inspValve.endBreath(); // close the inspiratory valve
@@ -60,17 +54,8 @@ State* OffState::update() {
 static State* InsStateVC::enter() {
     if (instance==0) instance = new InsStateVC();  // one-time setup
 
-    // check for possible shutoff
-    State* nextState;
-    if (display.isTurnedOff()) {
-        // the user has turned off ventilation
-        nextState = OffState::enter();
-    } else {
-        // enter breath cycle as usual
-        breath->beginInspiration();  // close valves, etc.
-        nextState = instance;
-    }
-    return nextState;
+    breath.beginInspiration();  // close valves, etc.
+    return instance;
 }
 
 // perform maintenance, and perhaps transition to new state
@@ -78,7 +63,7 @@ State* InsStateVC::update() {
     display.updateFlowWave(inspFlowReader.get());  //update flow waveform on the display
     inspFlowReader.updateVolume();                 //update the inpsiratory volume counter
     
-    bool timeout = (millis() >= breath->targetInspEndTime + INSP_TIME_SENSITIVITY); //calculate when the INSP_STATE should time out
+    bool timeout = (millis() >= breath.targetInspEndTime + INSP_TIME_SENSITIVITY); //calculate when the INSP_STATE should time out
 
     // check for state transition
     // transition out of INSP_STATE if either the inspired volume >= tidal volume set by user on the display
@@ -86,7 +71,7 @@ State* InsStateVC::update() {
     State* nextState;
     if (inspFlowReader.getVolume() >= display.volume() || timeout) {  
         // transition to next state
-        breath->inspDuration = millis() - breath->cycleTimer; // Record length of inspiration
+        breath.inspDuration = millis() - breath.cycleTimer; // Record length of inspiration
 
         // check for alarm conditions
         if (timeout) {
@@ -109,7 +94,7 @@ State* InsStateVC::update() {
         nextState = this;
         
         // adjust inspiratory valve as necessary to maintain targets
-        inspValve.maintainBreath(breath->cycleTimer);
+        inspValve.maintainBreath(breath.cycleTimer);
     }
     return nextState;    
 }
@@ -122,7 +107,7 @@ State* InsStateVC::update() {
 static State* InsHoldStateVC::enter() {
     if (instance==0) instance = new InsHoldStateVC();   // one-time setup
 
-    breath->beginHoldInspiration();    //begin the INSP_HOLD_STATE
+    breath.beginHoldInspiration();    //begin the INSP_HOLD_STATE
     return instance;
 }
 
@@ -132,7 +117,7 @@ State* InsHoldStateVC::update() {
     
     // check for state transition
     State* nextState;
-    if (HOLD_INSP_DURATION <= millis() - breath->inspHoldTimer) {
+    if (HOLD_INSP_DURATION <= millis() - breath.inspHoldTimer) {
         // transition to next state
         nextState = ExpStateVC::enter();
 
@@ -159,7 +144,7 @@ State* InsHoldStateVC::update() {
 static State* ExpStateVC::enter() {
     if (instance==0) instance = new ExpStateVC();  // one-time setup
 
-    breath->beginExpiration();
+    breath.beginExpiration();
     return instance;
 }
 
@@ -171,7 +156,7 @@ State* ExpStateVC::update() {
     
     // check for state transition
     State* nextState;
-    if (expFlowReader.getVolume() >= breath->targetExpVolume || millis() > breath->targetExpEndTime + EXP_TIME_SENSITIVITY){ 
+    if (expFlowReader.getVolume() >= breath.targetExpVolume || millis() > breath.targetExpEndTime + EXP_TIME_SENSITIVITY){ 
         // transition to next state
         nextState = PeepStateVC::enter();
     } else {
@@ -190,7 +175,7 @@ static State* PeepStateVC::enter() {
     if (instance==0) instance = new PeepStateVC();  // one-time setup
 
     Serial.println("entering peep state"); //@debugging    
-    breath->beginPeepPause();
+    breath.beginPeepPause();
     return instance;
 }
 
@@ -202,7 +187,7 @@ State* PeepStateVC::update() {
     
     // check for state transition
     State* nextState;
-    if (millis() - breath->peepPauseTimer >= MIN_PEEP_PAUSE) {
+    if (millis() - breath.peepPauseTimer >= MIN_PEEP_PAUSE) {
         // transition to next state
         expPressureReader.setPeep();  // record the peep as the current pressure
         nextState = ExpHoldStateVC::enter();
@@ -221,7 +206,7 @@ State* PeepStateVC::update() {
 static State* ExpHoldStateVC::enter() {
     if (instance==0) instance = new ExpHoldStateVC();  // one-time setup
 
-    breath->beginHoldExpiration();
+    breath.beginHoldExpiration();
     return instance;
 }
 
@@ -233,13 +218,19 @@ State* ExpHoldStateVC::update() {
 
     // Check if patient triggers inhale or state timed out 
     bool patientTriggered = expPressureReader.get() < expPressureReader.peep() - display.sensitivity();
-    bool timeout = (millis()  > breath->targetCycleEndTime); //check if the expiratory hold timer has run out
+    bool timeout = (millis()  > breath.targetCycleEndTime); //check if the expiratory hold timer has run out
 
     // check for state transition
     State* nextState;
     if (patientTriggered || timeout) { 
         // transition to next state
-        nextState = InsStateVC::enter();
+        if (display.isTurnedOff()) {
+            // the user has turned off ventilation
+            nextState = OffState::enter();
+        } else {
+            // enter breath cycle as usual
+            nextState = InsStateVC::enter();
+        }        
     } else {
         // continue in current state
         nextState = this;

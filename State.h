@@ -9,7 +9,7 @@
 class State {
   public:
     virtual State* update() = 0;           // perform maintenance, and perhaps transition to new state
-    static BreathData* breath;             // holds shared information about the breath cycle
+    static BreathData breath;              // holds shared information about the breath cycle
 };
 
 /*
@@ -22,7 +22,7 @@ class OffState : public State {
   public:
     static State* enter();               // performs actions necessary upon entering the state
     State* update();                     // perform maintenance, and perhaps transition to next state
-    static State* begin(BreathData);     // returns the OffState instance with breath data link
+    static State* initState(BreathData); // returns the OffState instance with breath data link
   private: 
     OffState() {};                       // to create singleton instance
     static OffState *instance;           // storage for singleton instance

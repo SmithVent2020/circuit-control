@@ -6,9 +6,6 @@
 #include "ProportionalValve.h"
 #include "BreathData.h"
 
-static unsigned long BreathData::cycleCount = 0; // number of breaths (including current breath)
-
-
 /**
  *  Sets up for a new breath.
  *  Called by InsStateVC.enter()

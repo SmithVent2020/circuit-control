@@ -31,7 +31,6 @@ VentMode ventMode = VC_MODE;  // set the default ventilation mode to volume cont
 
 // State objects
 State *state;        // current state of machine
-BreathData breath;   // data about current breath
 
 //--------------Declare Functions--------------
 /**
@@ -84,13 +83,17 @@ void setup() {
 
   // set to VC_MODE (@FutureWork: ideally this would be indicated through the UI startup sequence)
   ventMode = VC_MODE;   // for testing VC mode only
-  expValve.close();     // close exp valve initially
+  expValve.close();     // close exp valve for calibration
 
   // calibrate flow meters -- seems to change when SV4 closes
   inspFlowReader.calibrateToZero(); // set non-flow analog readings as the 0 in the flow reading functions
   expFlowReader.calibrateToZero();  
 
-  state = OffState::begin(breath);  // start in OFF_STATE
+  // valve settings to begin
+  inspValve.endBreath();      // close the inspiratory valve
+  expValve.open();            // keep expiratory valve open for safety (also does not use as much power)
+
+  state = OffState::enter();  // start in OFF_STATE
 
   // @FutureWork: implement startup sequence on display
   // display.start();
@@ -104,8 +107,8 @@ void loop() {
   readSensors(); 
 
   // @FutureWork: We only alarm after first 5 breaths (this is a "warm up" issue where it takes time to stabilize)
-  if (breath.cycleCount > 5){  
-    breath.checkSensorReadings();     
+  if (state->breath.cycleCount > 5){  
+    state->breath.checkSensorReadings();     
     alarmMgr.maintainAlarms();  // maintain any ongoing alarms 
   }
   

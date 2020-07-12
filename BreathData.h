@@ -31,10 +31,10 @@ class BreathData {
     float tidalVolumeInsp = 0.0; // measured inspiratory tidal volume
     float tidalVolumeExp = 0.0;  // measured expiratory tidal volume
 
-    float lastPeep = 0.0/0.0; // PEEP from last breath
-    float lastPeak = 0.0/0.0; // peak pressure from last breath
+    float lastPeep = NaNf; // PEEP from last breath
+    float lastPeak = NaNf; // peak pressure from last breath
 
-    static unsigned long cycleCount; // number of breaths (including current breath)
+    unsigned long cycleCount = 0; // number of breaths (including current breath)
 
     // update functions
     void beginInspiration();
