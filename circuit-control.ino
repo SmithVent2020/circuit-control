@@ -108,7 +108,7 @@ void loop() {
 
   // @FutureWork: We only alarm after first 5 breaths (this is a "warm up" issue where it takes time to stabilize)
   if (state->breath.cycleCount > 5){  
-    state->breath.checkSensorReadings();     
+    state->breath.checkForAlarmConditions();     
     alarmMgr.maintainAlarms();  // maintain any ongoing alarms 
   }
   
