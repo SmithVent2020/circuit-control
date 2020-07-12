@@ -45,7 +45,7 @@ class BreathData {
     void beginHoldExpiration();
 
     // monitoring functions
-    void checkSensorReadings();
+    void checkForAlarmConditions();
 
   private:
     void checkAlarmRange(float reading, float compareValue, float sensitivity, alarmCode highAlarmCode, alarmCode lowAlarmCode);

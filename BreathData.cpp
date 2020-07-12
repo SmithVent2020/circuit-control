@@ -85,7 +85,7 @@ void BreathData::checkAlarmRange(float reading, float compareValue, float sensit
 /** 
  * check for errors in sensor readings and take appropriate action
  */ 
-void BreathData::checkSensorReadings() {
+void BreathData::checkForAlarmConditions() {
   checkAlarmRangeWithUpdate(inspPressureReader.peak(), lastPeak, INSP_PRESSURE_SENSITIVITY, ALARM_INSP_HIGH, ALARM_INSP_LOW);
   checkAlarmRange(tidalVolumeInsp, display.volume(), display.volume()/TIDAL_VOLUME_SENSITVITY, ALARM_TIDAL_HIGH, ALARM_TIDAL_LOW);
 }
