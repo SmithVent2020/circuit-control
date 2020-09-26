@@ -40,10 +40,7 @@ void BreathData::beginInspiration() {
   targetInspEndTime  = cycleTimer + targetInspDuration;                           // target time for INSP_STATE to end
   targetExpDuration  = targetCycleDuration - targetInspDuration - MIN_PEEP_PAUSE; // target time for EXP_STATE to end
   desiredInspFlow = display.volume() * CC_PER_MS_TO_LPM / targetInspDuration;     // desired inspiratory flowrate cc/ms
-
-  // begin PID control based on desired flow and reset tidal volume
-  inspValve.beginBreath(desiredInspFlow); 
-  inspFlowReader.resetVolume();           
+        
   cycleCount++;                           
 }
 

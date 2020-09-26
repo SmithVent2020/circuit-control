@@ -1,5 +1,5 @@
 #include "BreathData.h"
-#include "State.h"
+#include "StateMachine.h"
 #include "Constants.h"
 #include "Display.h"
 #include "Flow.h"
@@ -8,63 +8,73 @@
 #include "ProportionalValve.h"
 #include "AlarmManager.h"
 #include "BreathData.h"
-#include "State.h"
 
-// Initialize breath data
-BreathData State::breath;
+// Constructor initializes all the singleton state instances
+// and initializes state to OffState.
+StateMachine::StateMachine() {
+    currentState = &OffState::singleton();
+    currentState->enter();
+    alarmMgr.deactivateAlarm(ALARM_SHUTDOWN);  // no alarm when entering on startup
+}
 
-// Initialize singleton instances
-OffState* OffState::instance = 0;
-InsStateVC* InsStateVC::instance = 0;
-InsHoldStateVC* InsHoldStateVC::instance = 0;
-ExpStateVC* ExpStateVC::instance = 0;
-PeepStateVC* PeepStateVC::instance = 0;
-ExpHoldStateVC* ExpHoldStateVC::instance = 0;
+// Holds data about the breath cycle.
+BreathData StateMachine::breath;
+
+// Calls the update for the current state, and enters a new state if necessary
+void StateMachine::update() {
+    State* nextState = currentState->update();
+    if (nextState != currentState) {
+        nextState->enter();
+        currentState = nextState;
+    }
+}
 
 /*********************************************************/
 /* OffState                                              */
 /*********************************************************/
 
-static State* OffState::enter() {
-    if (instance==0) {
-        instance = new OffState();  // one-time setup
-    } else {
-        // if we enter this state other than at the beginning, sound an alarm        
-        alarmMgr.activateAlarm(ALARM_SHUTDOWN);
-    }
+// returns the singleton instance of this class
+static StateMachine::OffState StateMachine::OffState::singleton() {
+    static OffState theSingleton;
+    return theSingleton;
+}
+
+void StateMachine::OffState::enter() {
+    // if we enter this state other than at the beginning, sound an alarm        
+    alarmMgr.activateAlarm(ALARM_SHUTDOWN);
 
     // valve settings
     inspValve.endBreath(); // close the inspiratory valve
     expValve.open();       // keep expiratory valve open for safety (also does not use as much power)
-
-    return instance;
 }
 
 // perform maintenance, and perhaps transition to new state
-State* OffState::update() {
+StateMachine::State* StateMachine::OffState::update() {
     // for now, transition immediately to inspiration state
-    return InsStateVC::enter();
+    return &InsStateVC::singleton();
 }
 
 /*********************************************************/
 /* InsStateVC                                              */
 /*********************************************************/
 
-// performs actions necessary upon entering a state
-static State* InsStateVC::enter() {
-    if (instance==0) instance = new InsStateVC();  // one-time setup
+// returns the singleton instance of this class
+static StateMachine::InsStateVC StateMachine::InsStateVC::singleton() {
+    static InsStateVC theSingleton;
+    return theSingleton;
+}
 
+// performs actions necessary upon entering a state
+void StateMachine::InsStateVC::enter() {
     breath.beginInspiration();  // close valves, etc.
 
     // begin PID control based on desired flow and reset tidal volume
     inspValve.beginBreath(breath.desiredInspFlow); 
     inspFlowReader.resetVolume();   
-  
-    return instance;
 }
 
 // perform maintenance, and perhaps transition to new state
-State* InsStateVC::update() {   
+StateMachine::State* StateMachine::InsStateVC::update() {   
     display.updateFlowWave(inspFlowReader.get());  //update flow waveform on the display
     inspFlowReader.updateVolume();                 //update the inpsiratory volume counter
     
@@ -89,10 +99,10 @@ State* InsStateVC::update() {
         // decide which state to enter next
         if (display.inspHold()) { 
             //if user has turned on the inspiratory hold, 
-            nextState = InsHoldStateVC::enter();
+            nextState = &InsHoldStateVC::singleton();
         } else {
             //if inspiratory hold is not on, transition to EXP_STATE
-            nextState = ExpStateVC::enter();
+            nextState = &ExpStateVC::singleton();
         }
     } else {
         // continue in current state
@@ -108,23 +118,26 @@ State* InsStateVC::update() {
 /* InsHoldStateVC                                              */
 /*********************************************************/
 
-// performs actions necessary upon entering a state
-static State* InsHoldStateVC::enter() {
-    if (instance==0) instance = new InsHoldStateVC();   // one-time setup
+// returns the singleton instance of this class
+static StateMachine::InsHoldStateVC StateMachine::InsHoldStateVC::singleton() {
+    static InsHoldStateVC theSingleton;
+    return theSingleton;
+}
 
+// performs actions necessary upon entering a state
+void StateMachine::InsHoldStateVC::enter() {
     breath.beginHoldInspiration();    //begin the INSP_HOLD_STATE
-    return instance;
 }
 
 // perform maintenance, and perhaps transition to new state
-State* InsHoldStateVC::update() {
+StateMachine::State* StateMachine::InsHoldStateVC::update() {
     display.updateFlowWave(inspFlowReader.get()); //update flow waveform on display, based on current flow reading
     
     // check for state transition
     State* nextState;
     if (HOLD_INSP_DURATION <= millis() - breath.inspHoldTimer) {
         // transition to next state
-        nextState = ExpStateVC::enter();
+        nextState = &ExpStateVC::singleton();
 
         //if we have not reached the end time for HOLD_INSP_STATE
         inspPressureReader.setPlateau();              //record current inspiratory pressure as the plateau pressure
@@ -145,16 +158,19 @@ State* InsHoldStateVC::update() {
 /* ExpStateVC                                              */
 /*********************************************************/
 
-// performs actions necessary upon entering a state
-static State* ExpStateVC::enter() {
-    if (instance==0) instance = new ExpStateVC();  // one-time setup
+// returns the singleton instance of this class
+static StateMachine::ExpStateVC StateMachine::ExpStateVC::singleton() {
+    static ExpStateVC theSingleton;
+    return theSingleton;
+}
 
+// performs actions necessary upon entering a state
+void StateMachine::ExpStateVC::enter() {
     breath.beginExpiration();
-    return instance;
 }
 
 // perform maintenance, and perhaps transition to new state
-State* ExpStateVC::update() {
+StateMachine::State* StateMachine::ExpStateVC::update() {
     // To update flow graph, flip sign of expiratory flow sensor to show flow out of lungs 
     display.updateFlowWave(expFlowReader.get() * -1);
     expFlowReader.updateVolume(); 
@@ -163,7 +179,7 @@ State* ExpStateVC::update() {
     State* nextState;
     if (expFlowReader.getVolume() >= breath.targetExpVolume || millis() > breath.targetExpEndTime + EXP_TIME_SENSITIVITY){ 
         // transition to next state
-        nextState = PeepStateVC::enter();
+        nextState = &PeepStateVC::singleton();
     } else {
         // continue in current state
         nextState = this;
@@ -175,17 +191,20 @@ State* ExpStateVC::update() {
 /* PeepStateVC                                              */
 /*********************************************************/
 
-// performs actions necessary upon entering a state
-static State* PeepStateVC::enter() {
-    if (instance==0) instance = new PeepStateVC();  // one-time setup
+// returns the singleton instance of this class
+static StateMachine::PeepStateVC StateMachine::PeepStateVC::singleton() {
+    static PeepStateVC theSingleton;
+    return theSingleton;
+}
 
+// performs actions necessary upon entering a state
+void StateMachine::PeepStateVC::enter() {
     Serial.println("entering peep state"); //@debugging    
     breath.beginPeepPause();
-    return instance;
 }
 
 // perform maintenance, and perhaps transition to new state
-State* PeepStateVC::update() {
+StateMachine::State* StateMachine::PeepStateVC::update() {
     // To update flow graph, flip sign of expiratory flow sensor to show flow out of lungs 
     display.updateFlowWave(expFlowReader.get() * -1);  // update expiratory flow waveform on display
     expFlowReader.updateVolume();                      // update expiratory volume counter
@@ -195,7 +214,7 @@ State* PeepStateVC::update() {
     if (millis() - breath.peepPauseTimer >= MIN_PEEP_PAUSE) {
         // transition to next state
         expPressureReader.setPeep();  // record the peep as the current pressure
-        nextState = ExpHoldStateVC::enter();
+        nextState = &ExpHoldStateVC::singleton();
     } else {
         // continue in current state
         nextState = this;
@@ -207,16 +226,19 @@ State* PeepStateVC::update() {
 /* ExpHoldStateVC                                              */
 /*********************************************************/
 
-// performs actions necessary upon entering a state
-static State* ExpHoldStateVC::enter() {
-    if (instance==0) instance = new ExpHoldStateVC();  // one-time setup
+// returns the singleton instance of this class
+static StateMachine::ExpHoldStateVC StateMachine::ExpHoldStateVC::singleton() {
+    static ExpHoldStateVC theSingleton;
+    return theSingleton;
+}
 
+// performs actions necessary upon entering a state
+void StateMachine::ExpHoldStateVC::enter() {
     breath.beginHoldExpiration();
-    return instance;
 }
 
 // perform maintenance, and perhaps transition to new state
-State* ExpHoldStateVC::update() {
+StateMachine::State* StateMachine::ExpHoldStateVC::update() {
     // To update flow graph, flip sign of expiratory flow sensor to show flow out of lungs 
     display.updateFlowWave(expFlowReader.get() * -1);  // update flow waveform on display
     expFlowReader.updateVolume();                      // update expiratory flow counter
@@ -231,10 +253,10 @@ State* ExpHoldStateVC::update() {
         // transition to next state
         if (display.isTurnedOff()) {
             // the user has turned off ventilation
-            nextState = OffState::enter();
+            nextState = &OffState::singleton();
         } else {
             // enter breath cycle as usual
-            nextState = InsStateVC::enter();
+            nextState = &InsStateVC::singleton();
         }        
     } else {
         // continue in current state

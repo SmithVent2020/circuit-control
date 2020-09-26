@@ -21,7 +21,7 @@
 #include "O2management.h"
 #include "AlarmManager.h"
 #include "Display.h"
-#include "State.h"
+#include "StateMachine.h"
 
 
 // Flags
@@ -30,7 +30,7 @@ bool onButton = true;         // should be set to true when user indicates so on
 VentMode ventMode = VC_MODE;  // set the default ventilation mode to volume control 
 
 // State objects
-State *state;        // current state of machine
+StateMachine state;           // current state of machine
 
 //--------------Declare Functions--------------
 /**
@@ -93,8 +93,6 @@ void setup() {
   inspValve.endBreath();      // close the inspiratory valve
   expValve.open();            // keep expiratory valve open for safety (also does not use as much power)
 
-  state = OffState::enter();  // start in OFF_STATE
-
   // @FutureWork: implement startup sequence on display
   // display.start();
 }
@@ -107,8 +105,8 @@ void loop() {
   readSensors(); 
 
   // @FutureWork: We only alarm after first 5 breaths (this is a "warm up" issue where it takes time to stabilize)
-  if (state->breath.cycleCount > 5){  
-    state->breath.checkForAlarmConditions();     
+  if (state.breath.cycleCount > 5){  
+    state.breath.checkForAlarmConditions();     
     alarmMgr.maintainAlarms();  // maintain any ongoing alarms 
   }
   
@@ -118,5 +116,5 @@ void loop() {
   o2Management(display.oxygen());
 
   // handle state maintenance & update
-  state = state->update();
+  state.update();
 }
