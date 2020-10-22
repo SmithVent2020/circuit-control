@@ -34,7 +34,8 @@ private:
     // Standby mode.  This is the initial state.
     class OffState : public State {
     public:
-        static OffState singleton();  // returns singleton instance
+        static OffState OffState_singleton;
+        
         void enter();                 // performs actions necessary upon entering the state
         State* update();              // perform maintenance, and perhaps transition to next state
     private: 
@@ -44,7 +45,8 @@ private:
     // Inspiration begins a breath cycle
     class InsStateVC : public State {
     public:
-        static InsStateVC singleton();  // returns singleton instance
+        static InsStateVC InsStateVC_singleton;
+        
         void enter();                   // performs actions necessary upon entering the state
         State* update();                // perform maintenance, and perhaps transition to next state
     private: 
@@ -55,7 +57,8 @@ private:
     // Physician may order an inspiratory hold to measure plateau pressure
     class InsHoldStateVC : public State {
     public:
-        static InsHoldStateVC singleton();  // returns singleton instance
+        static InsHoldStateVC InsHoldStateVC_singleton;
+
         void enter();                       // performs actions necessary upon entering the state
         State* update();                    // perform maintenance, and perhaps transition to next state
     private: 
@@ -65,7 +68,8 @@ private:
     // Expiration 
     class ExpStateVC : public State {
     public:
-        static ExpStateVC singleton();  // returns singleton instance
+        static ExpStateVC ExpStateVC_singleton;
+
         void enter();                   // performs actions necessary upon entering the state
         State* update();                // perform maintenance, and perhaps transition to next state
     private: 
@@ -75,7 +79,8 @@ private:
     // Measure PEEP pressure at end of expiration
     class PeepStateVC : public State {
     public:
-        static PeepStateVC singleton();  // returns singleton instance
+        static PeepStateVC PeepStateVC_singleton;
+
         void enter();                    // performs actions necessary upon entering the state
         State* update();                 // perform maintenance, and perhaps transition to next state
     private: 
@@ -85,7 +90,8 @@ private:
     // Waiting for new breath to begin
     class ExpHoldStateVC : public State {
     public:
-        static ExpHoldStateVC singleton();  // returns singleton instance
+        static ExpHoldStateVC ExpHoldStateVC_singleton;
+
         void enter();                       // performs actions necessary upon entering the state
         State* update();                    // perform maintenance, and perhaps transition to next state
     private: 
